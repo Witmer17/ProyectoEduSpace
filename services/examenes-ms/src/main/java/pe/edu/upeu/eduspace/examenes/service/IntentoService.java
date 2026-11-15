@@ -10,6 +10,7 @@ import pe.edu.upeu.eduspace.examenes.dto.IntentoResultadoResponse;
 import pe.edu.upeu.eduspace.examenes.entity.*;
 import pe.edu.upeu.eduspace.examenes.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.examenes.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.examenes.mapper.IntentoMapper;
 import pe.edu.upeu.eduspace.examenes.repository.*;
 
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ public class IntentoService {
     private final RespuestaRepository respuestaRepository;
     private final CalificacionAutomaticaService calificacionAutomaticaService;
     private final ExamenProperties examenProperties;
+    private final IntentoMapper intentoMapper;
 
     @Transactional
     public IntentoIniciadoResponse iniciarIntento(Long examenId, Long alumnoId) {
@@ -120,21 +122,7 @@ public class IntentoService {
             .orElseThrow(() -> new ResourceNotFoundException("Intento no encontrado: " + intentoId));
 
         boolean requiereRev = intento.getRespuestas().stream().anyMatch(Respuesta::getRequiereRevision);
-
-        return IntentoResultadoResponse.builder()
-            .intentoId(intento.getId())
-            .examenId(intento.getExamen().getId())
-            .tituloExamen(intento.getExamen().getTitulo())
-            .numeroIntento(intento.getNumero())
-            .estado(intento.getEstado())
-            .puntajeObtenido(intento.getPuntajeObtenido())
-            .puntajeTotal(intento.getExamen().getPuntajeTotal())
-            .nota(intento.getNota())
-            .iniciadoEn(intento.getIniciadoEn())
-            .enviadoEn(intento.getEnviadoEn())
-            .calificadoEn(intento.getCalificadoEn())
-            .requiereRevisionAbiertas(requiereRev)
-            .build();
+        return intentoMapper.toResultadoResponse(intento, requiereRev);
     }
 
     private IntentoIniciadoResponse construirIntentoResponse(Intento intento, Examen examen) {
@@ -175,16 +163,7 @@ public class IntentoService {
                 .build());
         }
 
-        return IntentoIniciadoResponse.builder()
-            .intentoId(intento.getId())
-            .examenId(examen.getId())
-            .tituloExamen(examen.getTitulo())
-            .numeroIntento(intento.getNumero())
-            .iniciadoEn(intento.getIniciadoEn())
-            .venceEn(intento.getVenceEn())
-            .puntajeTotal(examen.getPuntajeTotal())
-            .preguntas(listaPreguntas)
-            .build();
+        return intentoMapper.toIniciadoResponse(intento, examen, listaPreguntas);
     }
 }
 

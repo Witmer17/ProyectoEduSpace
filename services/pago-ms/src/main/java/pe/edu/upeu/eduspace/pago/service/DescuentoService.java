@@ -10,6 +10,7 @@ import pe.edu.upeu.eduspace.pago.entity.Descuento;
 import pe.edu.upeu.eduspace.pago.entity.DescuentoAlumno;
 import pe.edu.upeu.eduspace.pago.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.pago.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.pago.mapper.DescuentoMapper;
 import pe.edu.upeu.eduspace.pago.repository.DescuentoAlumnoRepository;
 import pe.edu.upeu.eduspace.pago.repository.DescuentoRepository;
 
@@ -21,6 +22,7 @@ public class DescuentoService {
 
     private final DescuentoRepository descuentoRepository;
     private final DescuentoAlumnoRepository descuentoAlumnoRepository;
+    private final DescuentoMapper descuentoMapper;
 
     @Transactional(readOnly = true)
     public List<DescuentoResponse> listarActivos() {
@@ -76,14 +78,7 @@ public class DescuentoService {
     }
 
     private DescuentoResponse toResponse(Descuento d) {
-        return DescuentoResponse.builder()
-            .id(d.getId())
-            .nombre(d.getNombre())
-            .tipo(d.getTipo())
-            .valor(d.getValor())
-            .aplicaA(d.getAplicaA())
-            .activo(d.getActivo())
-            .build();
+        return descuentoMapper.toResponse(d);
     }
 }
 

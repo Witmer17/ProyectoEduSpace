@@ -9,6 +9,7 @@ import pe.edu.upeu.eduspace.pago.entity.CajaSesion;
 import pe.edu.upeu.eduspace.pago.entity.Pago;
 import pe.edu.upeu.eduspace.pago.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.pago.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.pago.mapper.CajaSesionMapper;
 import pe.edu.upeu.eduspace.pago.repository.CajaSesionRepository;
 import pe.edu.upeu.eduspace.pago.repository.PagoRepository;
 
@@ -25,6 +26,7 @@ public class CajaService {
 
     private final CajaSesionRepository cajaSesionRepository;
     private final PagoRepository pagoRepository;
+    private final CajaSesionMapper cajaSesionMapper;
 
     @Transactional
     public CajaResponse abrirCaja(Long cajeroUsuarioId, AbrirCajaRequest req) {
@@ -142,17 +144,7 @@ public class CajaService {
     }
 
     private CajaResponse toResponse(CajaSesion c) {
-        return CajaResponse.builder()
-            .id(c.getId())
-            .cajeroUsuarioId(c.getCajeroUsuarioId())
-            .aperturaEn(c.getAperturaEn())
-            .montoApertura(c.getMontoApertura())
-            .cierreEn(c.getCierreEn())
-            .montoCierreDeclarado(c.getMontoCierreDeclarado())
-            .montoCierreSistema(c.getMontoCierreSistema())
-            .diferencia(c.getDiferencia())
-            .estado(c.getEstado())
-            .build();
+        return cajaSesionMapper.toResponse(c);
     }
 }
 

@@ -40,6 +40,7 @@ public class SecurityConfig {
                 }
                 auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout").permitAll();
                 auth.requestMatchers("/api/v1/publico/**").permitAll();   // matrícula en línea del sitio público (limitada por RateLimitFilter)
+                auth.requestMatchers(HttpMethod.POST, "/api/v1/pagos/webhook/**").permitAll();   // Webhooks externos pasarela (Mercado Pago)
                 auth.anyRequest().authenticated();   // incluye el resto de /actuator cuando no es público
             })
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));

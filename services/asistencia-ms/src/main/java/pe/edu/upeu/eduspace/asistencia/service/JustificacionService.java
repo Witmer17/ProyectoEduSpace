@@ -17,6 +17,7 @@ import pe.edu.upeu.eduspace.asistencia.entity.MatriculaLocal;
 import pe.edu.upeu.eduspace.asistencia.event.JustificacionResueltaEvent;
 import pe.edu.upeu.eduspace.asistencia.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.asistencia.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.asistencia.mapper.JustificacionMapper;
 import pe.edu.upeu.eduspace.asistencia.messaging.AsistenciaEventProducer;
 import pe.edu.upeu.eduspace.asistencia.repository.AuditoriaRepository;
 import pe.edu.upeu.eduspace.asistencia.repository.DetalleRepository;
@@ -42,6 +43,7 @@ public class JustificacionService {
     private final AsistenciaEventProducer producer;
     private final ArchivoService archivos;
     private final IdentidadService identidad;
+    private final JustificacionMapper justificacionMapper;
 
     /** El apoderado solo puede justificar a sus hijos. */
     @Transactional
@@ -136,8 +138,6 @@ public class JustificacionService {
     }
 
     private JustificacionResponse toResponse(Justificacion j, int convertidas) {
-        return new JustificacionResponse(j.getId(), j.getMatriculaId(), j.getAlumnoId(), j.getFechaDesde(), j.getFechaHasta(),
-            j.getTipo(), j.getMotivo(), j.getRutaArchivo(), j.getEstado(), j.getSolicitadoPor(), j.getResueltoPor(),
-            j.getResueltoEn(), j.getComentarioResolucion(), j.getCreadoEn(), convertidas);
+        return justificacionMapper.toResponse(j, convertidas);
     }
 }

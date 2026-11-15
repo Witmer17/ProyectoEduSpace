@@ -15,6 +15,7 @@ import pe.edu.upeu.eduspace.tareas.entity.Tarea;
 import pe.edu.upeu.eduspace.tareas.event.TareaEntregadaEvent;
 import pe.edu.upeu.eduspace.tareas.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.tareas.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.tareas.mapper.EntregaMapper;
 import pe.edu.upeu.eduspace.tareas.messaging.TareaEventProducer;
 import pe.edu.upeu.eduspace.tareas.repository.EntregaArchivoRepository;
 import pe.edu.upeu.eduspace.tareas.repository.EntregaRepository;
@@ -38,6 +39,7 @@ public class EntregaService {
     private final ArchivoService archivos;
     private final TareasProperties props;
     private final TareaEventProducer producer;
+    private final EntregaMapper entregaMapper;
 
     /** URL firmada de subida; la ruta incluye tarea y alumno para poder verificar luego que el archivo es suyo. */
     @Transactional(readOnly = true)
@@ -151,11 +153,8 @@ public class EntregaService {
     }
 
     EntregaResponse toResponse(Entrega e, String alumnoNombre) {
-        List<ArchivoResponse> arch = archivoRepo.findByEntregaIdOrderByIdAsc(e.getId()).stream()
-            .map(a -> new ArchivoResponse(a.getId(), a.getNombreArchivo(), a.getContentType(), a.getTamanoBytes())).toList();
-        return new EntregaResponse(e.getId(), e.getTareaId(), e.getMatriculaId(), e.getAlumnoId(), alumnoNombre, e.getComentario(),
-            e.getEntregadaEn(), e.getEsTardia(), e.getVersion(), e.getEstado(), e.getNota(), e.getRetroalimentacion(),
-            e.getCalificadaEn(), arch);
+        List<EntregaArchivo> arch = archivoRepo.findByEntregaIdOrderByIdAsc(e.getId());
+        return entregaMapper.toResponse(e, alumnoNombre, arch);
     }
 
     private MatriculaLocal matriculaDelAlumno(Tarea t, Long alumnoId) {

@@ -8,6 +8,7 @@ import pe.edu.upeu.eduspace.examenes.dto.IntentoResultadoResponse;
 import pe.edu.upeu.eduspace.examenes.entity.*;
 import pe.edu.upeu.eduspace.examenes.event.ExamenCalificadoEvent;
 import pe.edu.upeu.eduspace.examenes.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.examenes.mapper.IntentoMapper;
 import pe.edu.upeu.eduspace.examenes.messaging.ExamenEventProducer;
 import pe.edu.upeu.eduspace.examenes.repository.ExamenPreguntaRepository;
 import pe.edu.upeu.eduspace.examenes.repository.IntentoRepository;
@@ -27,6 +28,7 @@ public class CalificacionAutomaticaService {
     private final RespuestaRepository respuestaRepository;
     private final ExamenPreguntaRepository examenPreguntaRepository;
     private final ExamenEventProducer examenEventProducer;
+    private final IntentoMapper intentoMapper;
 
     @Transactional
     public IntentoResultadoResponse calificarIntento(Long intentoId) {
@@ -110,20 +112,7 @@ public class CalificacionAutomaticaService {
             log.info("Intento {} guardado con calificación parcial; requiere revisión de preguntas abiertas.", intentoId);
         }
 
-        return IntentoResultadoResponse.builder()
-            .intentoId(intento.getId())
-            .examenId(examen.getId())
-            .tituloExamen(examen.getTitulo())
-            .numeroIntento(intento.getNumero())
-            .estado(intento.getEstado())
-            .puntajeObtenido(intento.getPuntajeObtenido())
-            .puntajeTotal(examen.getPuntajeTotal())
-            .nota(intento.getNota())
-            .iniciadoEn(intento.getIniciadoEn())
-            .enviadoEn(intento.getEnviadoEn())
-            .calificadoEn(intento.getCalificadoEn())
-            .requiereRevisionAbiertas(tieneAbiertasPendientes)
-            .build();
+        return intentoMapper.toResultadoResponse(intento, tieneAbiertasPendientes);
     }
 
     private BigDecimal evaluarPreguntaObjetiva(Pregunta p, Respuesta r, BigDecimal puntajeMaximo) {

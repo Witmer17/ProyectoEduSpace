@@ -13,6 +13,7 @@ import pe.edu.upeu.eduspace.tareas.entity.Material;
 import pe.edu.upeu.eduspace.tareas.event.MaterialPublicadoEvent;
 import pe.edu.upeu.eduspace.tareas.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.tareas.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.tareas.mapper.MaterialMapper;
 import pe.edu.upeu.eduspace.tareas.messaging.TareaEventProducer;
 import pe.edu.upeu.eduspace.tareas.repository.MaterialRepository;
 
@@ -36,6 +37,7 @@ public class MaterialService {
     private final EntregaService entregaService;
     private final MatriculaLocalService matriculaLocalService;
     private final TareaEventProducer producer;
+    private final MaterialMapper materialMapper;
 
     private static String prefijo(Long seccionId, Long cursoId) {
         return "materiales/" + seccionId + "/" + cursoId + "/";
@@ -143,7 +145,6 @@ public class MaterialService {
     }
 
     private MaterialResponse toResponse(Material m) {
-        return new MaterialResponse(m.getId(), m.getSeccionId(), m.getCursoId(), m.getDocenteId(), m.getTitulo(), m.getDescripcion(), m.getTipo(),
-            m.getEnlace(), m.getNombreArchivo(), m.getContentType(), m.getTamanoBytes(), m.getCreadoEn());
+        return materialMapper.toResponse(m);
     }
 }

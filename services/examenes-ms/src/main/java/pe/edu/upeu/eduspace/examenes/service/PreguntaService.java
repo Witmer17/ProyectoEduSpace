@@ -12,6 +12,7 @@ import pe.edu.upeu.eduspace.examenes.entity.OpcionPregunta;
 import pe.edu.upeu.eduspace.examenes.entity.Pregunta;
 import pe.edu.upeu.eduspace.examenes.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.examenes.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.examenes.mapper.PreguntaMapper;
 import pe.edu.upeu.eduspace.examenes.repository.OpcionPreguntaRepository;
 import pe.edu.upeu.eduspace.examenes.repository.PreguntaRepository;
 
@@ -26,6 +27,7 @@ public class PreguntaService {
 
     private final PreguntaRepository preguntaRepository;
     private final OpcionPreguntaRepository opcionPreguntaRepository;
+    private final PreguntaMapper preguntaMapper;
 
     @Transactional(readOnly = true)
     public PageResponse<PreguntaResponse> listarBanco(Long cursoId, Long docenteId, String tema, String tipo, Pageable pageable) {
@@ -168,27 +170,7 @@ public class PreguntaService {
     }
 
     public PreguntaResponse toResponse(Pregunta p) {
-        List<OpcionResponse> ops = p.getOpciones().stream()
-            .map(o -> OpcionResponse.builder()
-                .id(o.getId())
-                .texto(o.getTexto())
-                .esCorrecta(o.getEsCorrecta())
-                .orden(o.getOrden())
-                .build())
-            .toList();
-
-        return PreguntaResponse.builder()
-            .id(p.getId())
-            .cursoId(p.getCursoId())
-            .docenteId(p.getDocenteId())
-            .tema(p.getTema())
-            .tipo(p.getTipo())
-            .enunciado(p.getEnunciado())
-            .puntaje(p.getPuntaje())
-            .activa(p.getActiva())
-            .creadaEn(p.getCreadaEn())
-            .opciones(ops)
-            .build();
+        return preguntaMapper.toResponse(p);
     }
 }
 

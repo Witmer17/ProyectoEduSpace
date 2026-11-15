@@ -18,6 +18,7 @@ import pe.edu.upeu.eduspace.tareas.entity.TareaAdjunto;
 import pe.edu.upeu.eduspace.tareas.event.TareaPublicadaEvent;
 import pe.edu.upeu.eduspace.tareas.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.tareas.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.tareas.mapper.TareaMapper;
 import pe.edu.upeu.eduspace.tareas.messaging.TareaEventProducer;
 import pe.edu.upeu.eduspace.tareas.repository.EntregaRepository;
 import pe.edu.upeu.eduspace.tareas.repository.MatriculaLocalRepository;
@@ -42,6 +43,7 @@ public class TareaService {
     private final PlanificacionGateway planificacion;
     private final ArchivoService archivos;
     private final TareaEventProducer producer;
+    private final TareaMapper tareaMapper;
 
     // ------------------------------------------------------------------ gestión
 
@@ -211,19 +213,14 @@ public class TareaService {
     }
 
     private TareaResponse toResponseLiviano(Tarea t) {
-        return new TareaResponse(t.getId(), t.getAnioId(), t.getPeriodoId(), t.getSeccionId(), t.getCursoId(), t.getDocenteId(),
-            t.getTitulo(), t.getDescripcion(), t.getPublicadaEn(), t.getFechaEntrega(), t.getPermiteTardia(),
-            t.getPuntajeMaximo(), t.getEstado(), null, null, null, null);
+        return tareaMapper.toResponseLiviano(t);
     }
 
     TareaResponse toResponse(Tarea t) {
-        List<AdjuntoResponse> adj = adjuntoRepo.findByTareaIdOrderByIdAsc(t.getId()).stream()
-            .map(a -> new AdjuntoResponse(a.getId(), a.getNombreArchivo(), a.getContentType(), a.getTamanoBytes())).toList();
+        List<TareaAdjunto> adj = adjuntoRepo.findByTareaIdOrderByIdAsc(t.getId());
         long entregadas = entregaRepo.countByTareaId(t.getId());
         long calificadas = entregaRepo.countByTareaIdAndEstado(t.getId(), "CALIFICADA");
         int total = matriculaRepo.findBySeccionIdAndEstadoOrderByAlumnoNombre(t.getSeccionId(), "MATRICULADO").size();
-        return new TareaResponse(t.getId(), t.getAnioId(), t.getPeriodoId(), t.getSeccionId(), t.getCursoId(), t.getDocenteId(),
-            t.getTitulo(), t.getDescripcion(), t.getPublicadaEn(), t.getFechaEntrega(), t.getPermiteTardia(),
-            t.getPuntajeMaximo(), t.getEstado(), adj, (int) entregadas, (int) calificadas, (int) Math.max(0, total - entregadas));
+        return tareaMapper.toResponse(t, adj, (int) entregadas, (int) calificadas, (int) Math.max(0, total - entregadas));
     }
 }

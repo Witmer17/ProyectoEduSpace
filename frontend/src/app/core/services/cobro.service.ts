@@ -36,6 +36,24 @@ export class CobroService {
     return this.http.post<Pago>(`${API}/online`, body);
   }
 
+  crearPreferenciaMp(body: { alumnoId: number; detalles: { cuotaId: number; montoAplicado: number }[]; tipoComprobante?: string }): Observable<{
+    preferenceId: string;
+    initPoint: string;
+    sandboxInitPoint: string;
+    externalReference: string;
+    montoTotal: number;
+    publicKey?: string;
+  }> {
+    return this.http.post<{
+      preferenceId: string;
+      initPoint: string;
+      sandboxInitPoint: string;
+      externalReference: string;
+      montoTotal: number;
+      publicKey?: string;
+    }>(`${API}/mercadopago/preferencia`, body);
+  }
+
   anular(id: number, motivo: string): Observable<Pago> {
     return this.http.patch<Pago>(`${API}/${id}/anular`, { motivo });
   }

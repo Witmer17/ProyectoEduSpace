@@ -19,6 +19,7 @@ import pe.edu.upeu.eduspace.pago.entity.Comprobante;
 import pe.edu.upeu.eduspace.pago.entity.Cuota;
 import pe.edu.upeu.eduspace.pago.entity.MatriculaLocal;
 import pe.edu.upeu.eduspace.pago.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.pago.mapper.CuotaMapper;
 import pe.edu.upeu.eduspace.pago.repository.ComprobanteRepository;
 import pe.edu.upeu.eduspace.pago.repository.CuotaRepository;
 import pe.edu.upeu.eduspace.pago.repository.MatriculaLocalRepository;
@@ -45,6 +46,7 @@ public class PagoController {
     private final CuotaRepository cuotaRepository;
     private final MatriculaLocalRepository matriculaLocalRepository;
     private final pe.edu.upeu.eduspace.pago.client.AlumnosGateway alumnosGateway;
+    private final CuotaMapper cuotaMapper;
 
     @PostMapping
     @Operation(summary = "Registrar cobro en ventanilla o presencial (CAJERO, ADMIN)")
@@ -112,26 +114,7 @@ public class PagoController {
                 pendiente = pendiente.add(c.getSaldo());
             }
 
-            cuotasResp.add(CuotaResponse.builder()
-                .id(c.getId())
-                .matriculaId(c.getMatricula() != null ? c.getMatricula().getMatriculaId() : null)
-                .alumnoId(c.getAlumnoId())
-                .anioId(c.getAnioId())
-                .conceptoId(c.getConcepto().getId())
-                .conceptoNombre(c.getConcepto().getNombre())
-                .conceptoTipo(c.getConcepto().getTipo())
-                .descripcion(c.getDescripcion())
-                .numeroCuota(c.getNumeroCuota())
-                .montoBase(c.getMontoBase())
-                .descuento(c.getDescuento())
-                .mora(c.getMora())
-                .montoTotal(c.getMontoTotal())
-                .saldo(c.getSaldo())
-                .fechaVencimiento(c.getFechaVencimiento())
-                .estado(c.getEstado())
-                .diasAtraso(diasAtraso)
-                .avisoEnviado(c.getAvisoEnviado())
-                .build());
+            cuotasResp.add(cuotaMapper.toResponse(c));
         }
 
         return ResponseEntity.ok(EstadoCuentaResponse.builder()
@@ -155,28 +138,8 @@ public class PagoController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate vencimiento,
             Pageable pageable) {
 
-        LocalDate hoy = LocalDate.now();
         var page = cuotaRepository.findCuotasFiltradas(estado, alumnoId, seccionId, vencimiento, pageable)
-            .map(c -> CuotaResponse.builder()
-                .id(c.getId())
-                .matriculaId(c.getMatricula() != null ? c.getMatricula().getMatriculaId() : null)
-                .alumnoId(c.getAlumnoId())
-                .anioId(c.getAnioId())
-                .conceptoId(c.getConcepto().getId())
-                .conceptoNombre(c.getConcepto().getNombre())
-                .conceptoTipo(c.getConcepto().getTipo())
-                .descripcion(c.getDescripcion())
-                .numeroCuota(c.getNumeroCuota())
-                .montoBase(c.getMontoBase())
-                .descuento(c.getDescuento())
-                .mora(c.getMora())
-                .montoTotal(c.getMontoTotal())
-                .saldo(c.getSaldo())
-                .fechaVencimiento(c.getFechaVencimiento())
-                .estado(c.getEstado())
-                .diasAtraso(c.getFechaVencimiento().isBefore(hoy) ? ChronoUnit.DAYS.between(c.getFechaVencimiento(), hoy) : 0)
-                .avisoEnviado(c.getAvisoEnviado())
-                .build());
+            .map(cuotaMapper::toResponse);
 
         return ResponseEntity.ok(PageResponse.from(page));
     }
@@ -241,26 +204,7 @@ public class PagoController {
         for (AlumnoContactoResponse.HijoResumen hijo : hijos) {
             List<Cuota> cuotas = cuotaRepository.findByAlumnoIdOrderByFechaVencimientoAsc(hijo.getAlumnoId());
             for (Cuota c : cuotas) {
-                resultado.add(CuotaResponse.builder()
-                    .id(c.getId())
-                    .matriculaId(c.getMatricula() != null ? c.getMatricula().getMatriculaId() : null)
-                    .alumnoId(c.getAlumnoId())
-                    .anioId(c.getAnioId())
-                    .conceptoId(c.getConcepto().getId())
-                    .conceptoNombre(c.getConcepto().getNombre())
-                    .conceptoTipo(c.getConcepto().getTipo())
-                    .descripcion(c.getDescripcion())
-                    .numeroCuota(c.getNumeroCuota())
-                    .montoBase(c.getMontoBase())
-                    .descuento(c.getDescuento())
-                    .mora(c.getMora())
-                    .montoTotal(c.getMontoTotal())
-                    .saldo(c.getSaldo())
-                    .fechaVencimiento(c.getFechaVencimiento())
-                    .estado(c.getEstado())
-                    .diasAtraso(c.getFechaVencimiento().isBefore(hoy) ? ChronoUnit.DAYS.between(c.getFechaVencimiento(), hoy) : 0)
-                    .avisoEnviado(c.getAvisoEnviado())
-                    .build());
+                resultado.add(cuotaMapper.toResponse(c));
             }
         }
         return ResponseEntity.ok(resultado);

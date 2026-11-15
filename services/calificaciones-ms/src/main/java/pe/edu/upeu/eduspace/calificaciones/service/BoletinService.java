@@ -21,6 +21,7 @@ import pe.edu.upeu.eduspace.calificaciones.entity.PromedioPeriodo;
 import pe.edu.upeu.eduspace.calificaciones.event.BoletinGeneradoEvent;
 import pe.edu.upeu.eduspace.calificaciones.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.calificaciones.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.calificaciones.mapper.BoletinMapper;
 import pe.edu.upeu.eduspace.calificaciones.messaging.BoletinEventProducer;
 import pe.edu.upeu.eduspace.calificaciones.repository.BoletinRepository;
 import pe.edu.upeu.eduspace.calificaciones.repository.CierrePeriodoRepository;
@@ -48,6 +49,7 @@ public class BoletinService {
     private final PlanificacionClient planificacionClient;
     private final AlumnosClient alumnosClient;
     private final MinioClient minioClient;
+    private final BoletinMapper boletinMapper;
 
     @Value("${app.minio.bucket-boletines:boletines}")
     private String bucketBoletines;
@@ -220,18 +222,7 @@ public class BoletinService {
     }
 
     public BoletinResponse toResponse(Boletin b) {
-        return BoletinResponse.builder()
-            .id(b.getId())
-            .matriculaId(b.getMatriculaId())
-            .alumnoId(b.getAlumnoId())
-            .periodoId(b.getPeriodoId())
-            .version(b.getVersion())
-            .estado(b.getEstado())
-            .rutaPdf(b.getRutaPdf())
-            .urlDescarga("/api/v1/calificaciones/boletines/" + b.getId() + "/url")
-            .generadoPor(b.getGeneradoPor())
-            .generadoEn(b.getGeneradoEn())
-            .build();
+        return boletinMapper.toResponse(b);
     }
 }
 

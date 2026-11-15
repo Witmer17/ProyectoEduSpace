@@ -22,6 +22,7 @@ import pe.edu.upeu.eduspace.matricula.entity.MatriculaRequisito;
 import pe.edu.upeu.eduspace.matricula.event.MatriculaEvent;
 import pe.edu.upeu.eduspace.matricula.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.matricula.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.matricula.mapper.MatriculaMapper;
 import pe.edu.upeu.eduspace.matricula.repository.*;
 
 import java.time.LocalDateTime;
@@ -43,12 +44,14 @@ public class MatriculaService {
     private final AlumnosGateway alumnos;
     private final PlanificacionGateway planificacion;
     private final MatriculaProperties props;
+    private final MatriculaMapper matriculaMapper;
     private final TransactionTemplate tx;
 
     public MatriculaService(MatriculaRepository matriculaRepository, CampaniaRepository campaniaRepository,
                             RequisitoRepository requisitoRepository, HistorialRepository historialRepository,
                             CupoService cupoService, EventoOutboxService outbox, AlumnosGateway alumnos,
                             PlanificacionGateway planificacion, MatriculaProperties props,
+                            MatriculaMapper matriculaMapper,
                             PlatformTransactionManager txManager) {
         this.matriculaRepository = matriculaRepository;
         this.campaniaRepository = campaniaRepository;
@@ -59,6 +62,7 @@ public class MatriculaService {
         this.alumnos = alumnos;
         this.planificacion = planificacion;
         this.props = props;
+        this.matriculaMapper = matriculaMapper;
         this.tx = new TransactionTemplate(txManager);
     }
 
@@ -67,15 +71,15 @@ public class MatriculaService {
     @Transactional(readOnly = true)
     public PageResponse<MatriculaResponse> listar(Long anioId, Long gradoId, Long seccionId, String estado, String texto, Pageable pageable) {
         Page<Matricula> page = matriculaRepository.buscar(anioId, gradoId, seccionId, vacioANull(estado), texto == null ? "" : texto.trim(), pageable);
-        return PageResponse.from(page.map(MatriculaMapper::toResponse));
+        return PageResponse.from(page.map(matriculaMapper::toResponse));
     }
 
     @Transactional(readOnly = true)
     public MatriculaDetalleResponse detalle(Long id) {
         Matricula m = obtener(id);
-        return new MatriculaDetalleResponse(MatriculaMapper.toResponse(m),
-            requisitoRepository.findByMatriculaIdOrderByTipo(id).stream().map(MatriculaMapper::toResponse).toList(),
-            historialRepository.findByMatriculaIdOrderByFechaDescIdDesc(id).stream().map(MatriculaMapper::toResponse).toList());
+        return new MatriculaDetalleResponse(matriculaMapper.toResponse(m),
+            requisitoRepository.findByMatriculaIdOrderByTipo(id).stream().map(matriculaMapper::toRequisitoResponse).toList(),
+            historialRepository.findByMatriculaIdOrderByFechaDescIdDesc(id).stream().map(matriculaMapper::toHistorialResponse).toList());
     }
 
     @Transactional(readOnly = true)
@@ -87,7 +91,7 @@ public class MatriculaService {
     @Transactional(readOnly = true)
     public List<MatriculaResponse> delosAlumnos(Set<Long> alumnoIds) {
         if (alumnoIds.isEmpty()) return List.of();
-        return matriculaRepository.findByAlumnoIdIn(alumnoIds).stream().map(MatriculaMapper::toResponse).toList();
+        return matriculaRepository.findByAlumnoIdIn(alumnoIds).stream().map(matriculaMapper::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
@@ -206,7 +210,7 @@ public class MatriculaService {
             }
             outbox.registrar(KafkaConfig.TOPIC_MATRICULA_CREADA, ev);
             log.info("Matrícula {} creada para alumno {} en sección {}", codigo, alumnoId, sec.id());
-            return MatriculaMapper.toResponse(m);
+            return matriculaMapper.toResponse(m);
         });
     }
 
@@ -249,7 +253,7 @@ public class MatriculaService {
     @Transactional
     public MatriculaResponse aprobar(Long id, Long usuarioId) {
         Matricula m = obtener(id);
-        if ("MATRICULADO".equals(m.getEstado())) return MatriculaMapper.toResponse(m);
+        if ("MATRICULADO".equals(m.getEstado())) return matriculaMapper.toResponse(m);
         if ("PRE_MATRICULA".equals(m.getEstado())) {
             throw new BusinessRuleException("La matrícula aún no tiene el pago confirmado; no se puede aprobar.");
         }
@@ -267,7 +271,7 @@ public class MatriculaService {
         historial(m.getId(), "APROBACION", "POR_APROBAR", "MATRICULADO", null, null, "Aprobada por la administración", usuarioId);
         outbox.registrar(KafkaConfig.TOPIC_MATRICULA_CONFIRMADA, eventoConNombres(m, null, null));
         log.info("Matrícula {} aprobada por el usuario {}", m.getCodigo(), usuarioId);
-        return MatriculaMapper.toResponse(m);
+        return matriculaMapper.toResponse(m);
     }
 
     /** Rechaza una matrícula pagada: se anula, se libera el cupo y se publica {@code matricula.anulada}. El pago se devuelve desde Finanzas. */
@@ -307,7 +311,7 @@ public class MatriculaService {
             matriculaRepository.save(m);
             historial(m.getId(), "TRASLADO_SECCION", m.getEstado(), m.getEstado(), anterior, nueva.id(), req.motivo(), usuarioId);
             outbox.registrar(KafkaConfig.TOPIC_MATRICULA_TRASLADADA, eventoConNombres(m, req.motivo(), anterior));
-            return MatriculaMapper.toResponse(m);
+            return matriculaMapper.toResponse(m);
         });
     }
 
@@ -353,7 +357,7 @@ public class MatriculaService {
         historial(ref.getId(), tipoCambio, anterior, estadoNuevo, null, null, motivo, usuarioId);
         outbox.registrar(topic, eventoConNombres(ref, motivo, null));
         log.info("Matrícula {} -> {} ({})", ref.getId(), estadoNuevo, motivo);
-        return MatriculaMapper.toResponse(ref);
+        return matriculaMapper.toResponse(ref);
     }
 
     // ------------------------------------------------------------------ utilidades

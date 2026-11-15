@@ -26,3 +26,12 @@ eureka:
 # Token compartido entre servicios para /internal/** (header X-Service-Token). Sin él, /internal responde 401.
 eduspace:
   service-token: ${SERVICE_TOKEN:eduspace-dev-service-token}
+
+# Pasarela de pagos Mercado Pago
+mercadopago:
+  access-token: ${MERCADOPAGO_ACCESS_TOKEN:}
+  public-key: ${MERCADOPAGO_PUBLIC_KEY:}
+  back-url: ${MERCADOPAGO_BACK_URL:http://localhost:4200/familia/pagos}
+  notification-url: ${MERCADOPAGO_NOTIFICATION_URL:}
+  currency-id: ${MERCADOPAGO_CURRENCY:PEN}
+  produccion: ${MERCADOPAGO_PRODUCCION:false}

@@ -7,6 +7,7 @@ import pe.edu.upeu.eduspace.matricula.dto.Dtos.RequisitoRequest;
 import pe.edu.upeu.eduspace.matricula.dto.Dtos.RequisitoResponse;
 import pe.edu.upeu.eduspace.matricula.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.matricula.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.matricula.mapper.MatriculaMapper;
 import pe.edu.upeu.eduspace.matricula.repository.MatriculaRepository;
 import pe.edu.upeu.eduspace.matricula.repository.RequisitoRepository;
 
@@ -18,6 +19,7 @@ public class RequisitoService {
 
     private final RequisitoRepository requisitoRepository;
     private final MatriculaRepository matriculaRepository;
+    private final MatriculaMapper matriculaMapper;
 
     @Transactional
     public RequisitoResponse marcar(Long matriculaId, String tipo, RequisitoRequest req, Long usuarioId) {
@@ -34,6 +36,6 @@ public class RequisitoService {
         r.setObservacion(req.observacion());
         r.setVerificadoPor(usuarioId);
         r.setVerificadoEn(LocalDateTime.now());
-        return MatriculaMapper.toResponse(requisitoRepository.save(r));
+        return matriculaMapper.toRequisitoResponse(requisitoRepository.save(r));
     }
 }

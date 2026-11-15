@@ -12,6 +12,7 @@ import pe.edu.upeu.eduspace.examenes.entity.*;
 import pe.edu.upeu.eduspace.examenes.event.ExamenPublicadoEvent;
 import pe.edu.upeu.eduspace.examenes.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.examenes.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.examenes.mapper.ExamenMapper;
 import pe.edu.upeu.eduspace.examenes.messaging.ExamenEventProducer;
 import pe.edu.upeu.eduspace.examenes.repository.*;
 
@@ -34,6 +35,7 @@ public class ExamenService {
     private final PlanificacionClient planificacionClient;
     private final ExamenEventProducer examenEventProducer;
     private final CalificacionAutomaticaService calificacionAutomaticaService;
+    private final ExamenMapper examenMapper;
 
     @Transactional(readOnly = true)
     public PageResponse<ExamenResponse> listarExamenes(Long seccionId, Long cursoId, Long docenteId, String estado, Pageable pageable) {
@@ -45,48 +47,7 @@ public class ExamenService {
     public ExamenDetalleResponse obtenerPorId(Long id) {
         Examen e = examenRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Examen no encontrado con ID: " + id));
-
-        List<ExamenDetalleResponse.PreguntaItemDetalle> preguntasDetalle = new ArrayList<>();
-        for (ExamenPregunta ep : e.getPreguntas()) {
-            Pregunta p = ep.getPregunta();
-            List<OpcionResponse> opciones = p.getOpciones().stream()
-                .map(o -> OpcionResponse.builder()
-                    .id(o.getId())
-                    .texto(o.getTexto())
-                    .esCorrecta(o.getEsCorrecta())
-                    .orden(o.getOrden())
-                    .build())
-                .toList();
-
-            preguntasDetalle.add(ExamenDetalleResponse.PreguntaItemDetalle.builder()
-                .preguntaId(p.getId())
-                .orden(ep.getOrden())
-                .puntaje(ep.getPuntaje())
-                .tema(p.getTema())
-                .tipo(p.getTipo())
-                .enunciado(p.getEnunciado())
-                .opciones(opciones)
-                .build());
-        }
-
-        return ExamenDetalleResponse.builder()
-            .id(e.getId())
-            .anioId(e.getAnioId())
-            .periodoId(e.getPeriodoId())
-            .seccionId(e.getSeccionId())
-            .cursoId(e.getCursoId())
-            .docenteId(e.getDocenteId())
-            .titulo(e.getTitulo())
-            .instrucciones(e.getInstrucciones())
-            .fechaInicio(e.getFechaInicio())
-            .fechaFin(e.getFechaFin())
-            .duracionMin(e.getDuracionMin())
-            .intentosMax(e.getIntentosMax())
-            .barajarPreguntas(e.getBarajarPreguntas())
-            .puntajeTotal(e.getPuntajeTotal())
-            .estado(e.getEstado())
-            .preguntas(preguntasDetalle)
-            .build();
+        return examenMapper.toDetalleResponse(e);
     }
 
     @Transactional
@@ -266,19 +227,7 @@ public class ExamenService {
                     short intentosUsados = intentoRepository.countByExamenIdAndMatriculaId(e.getId(), m.getMatriculaId());
                     boolean puedeRendir = intentosUsados < e.getIntentosMax();
 
-                    disponibles.add(ExamenDisponibleResponse.builder()
-                        .examenId(e.getId())
-                        .cursoId(e.getCursoId())
-                        .titulo(e.getTitulo())
-                        .instrucciones(e.getInstrucciones())
-                        .fechaInicio(e.getFechaInicio())
-                        .fechaFin(e.getFechaFin())
-                        .duracionMin(e.getDuracionMin())
-                        .intentosMax(e.getIntentosMax())
-                        .intentosRealizados(intentosUsados)
-                        .puedeRendir(puedeRendir)
-                        .puntajeTotal(e.getPuntajeTotal())
-                        .build());
+                    disponibles.add(examenMapper.toDisponibleResponse(e, intentosUsados, puedeRendir));
                 }
             }
         }
@@ -287,25 +236,7 @@ public class ExamenService {
     }
 
     public ExamenResponse toResponse(Examen e) {
-        return ExamenResponse.builder()
-            .id(e.getId())
-            .anioId(e.getAnioId())
-            .periodoId(e.getPeriodoId())
-            .seccionId(e.getSeccionId())
-            .cursoId(e.getCursoId())
-            .docenteId(e.getDocenteId())
-            .titulo(e.getTitulo())
-            .instrucciones(e.getInstrucciones())
-            .fechaInicio(e.getFechaInicio())
-            .fechaFin(e.getFechaFin())
-            .duracionMin(e.getDuracionMin())
-            .intentosMax(e.getIntentosMax())
-            .barajarPreguntas(e.getBarajarPreguntas())
-            .puntajeTotal(e.getPuntajeTotal())
-            .estado(e.getEstado())
-            .creadoEn(e.getCreadoEn())
-            .publicadoEn(e.getPublicadoEn())
-            .build();
+        return examenMapper.toResponse(e);
     }
 }
 

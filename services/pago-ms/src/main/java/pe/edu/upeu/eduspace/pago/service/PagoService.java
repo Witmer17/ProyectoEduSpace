@@ -15,6 +15,7 @@ import pe.edu.upeu.eduspace.pago.event.EventoSobre;
 import pe.edu.upeu.eduspace.pago.event.PagoConfirmadoEvent;
 import pe.edu.upeu.eduspace.pago.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.pago.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.pago.mapper.PagoMapper;
 import pe.edu.upeu.eduspace.pago.repository.*;
 
 import java.math.BigDecimal;
@@ -33,6 +34,7 @@ public class PagoService {
     private final OutboxEventoRepository outboxEventoRepository;
     private final ComprobanteService comprobanteService;
     private final ObjectMapper objectMapper;
+    private final PagoMapper pagoMapper;
 
     @Transactional
     public PagoResponse registrarPago(RegistrarPagoRequest req, Long usuarioId) {
@@ -45,7 +47,8 @@ public class PagoService {
 
         // 2. Validar caja si es pago presencial
         CajaSesion cajaSesion = null;
-        if (!"ONLINE_SIMULADO".equals(req.getMedio())) {
+        boolean esOnline = "ONLINE_SIMULADO".equals(req.getMedio()) || "MERCADO_PAGO".equals(req.getMedio());
+        if (!esOnline) {
             cajaSesion = cajaSesionRepository.findFirstByCajeroUsuarioIdAndEstado(usuarioId, "ABIERTA")
                 .orElseThrow(() -> new BusinessRuleException("Debe tener una caja ABIERTA para registrar cobros presenciales."));
         }
@@ -211,45 +214,11 @@ public class PagoService {
     public PagoResponse toResponse(Pago p) {
         // Solo consulta: nunca emite comprobantes (evita consumir correlativos en lecturas)
         Comprobante c = p.getId() != null ? comprobanteService.buscarPorPago(p.getId()).orElse(null) : null;
-        return toResponse(p, c);
+        return pagoMapper.toResponse(p, c);
     }
 
     public PagoResponse toResponse(Pago p, Comprobante c) {
-        List<PagoResponse.PagoDetalleResponse> detResponses = new ArrayList<>();
-        if (p.getDetalles() != null) {
-            for (PagoDetalle d : p.getDetalles()) {
-                detResponses.add(PagoResponse.PagoDetalleResponse.builder()
-                    .id(d.getId())
-                    .cuotaId(d.getCuota().getId())
-                    .cuotaDescripcion(d.getCuota().getDescripcion())
-                    .montoAplicado(d.getMontoAplicado())
-                    .nuevoSaldoCuota(d.getCuota().getSaldo())
-                    .nuevoEstadoCuota(d.getCuota().getEstado())
-                    .build());
-            }
-        }
-
-        ComprobanteResponse compResp = null;
-        if (c != null) {
-            compResp = comprobanteService.toResponse(c);
-        }
-
-        return PagoResponse.builder()
-            .id(p.getId())
-            .alumnoId(p.getAlumnoId())
-            .pagadorNombre(p.getPagadorNombre())
-            .pagadorDocumento(p.getPagadorDocumento())
-            .montoTotal(p.getMontoTotal())
-            .medio(p.getMedio())
-            .referencia(p.getReferencia())
-            .estado(p.getEstado())
-            .cajaSesionId(p.getCajaSesion() != null ? p.getCajaSesion().getId() : null)
-            .registradoPor(p.getRegistradoPor())
-            .pagadoEn(p.getPagadoEn())
-            .idempotencyKey(p.getIdempotencyKey())
-            .comprobante(compResp)
-            .detalles(detResponses)
-            .build();
+        return pagoMapper.toResponse(p, c);
     }
 }
 

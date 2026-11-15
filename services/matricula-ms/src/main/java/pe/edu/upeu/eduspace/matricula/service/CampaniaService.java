@@ -8,6 +8,7 @@ import pe.edu.upeu.eduspace.matricula.dto.Dtos.CampaniaResponse;
 import pe.edu.upeu.eduspace.matricula.entity.CampaniaMatricula;
 import pe.edu.upeu.eduspace.matricula.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.matricula.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.matricula.mapper.CampaniaMapper;
 import pe.edu.upeu.eduspace.matricula.repository.CampaniaRepository;
 
 import java.util.List;
@@ -17,11 +18,12 @@ import java.util.List;
 public class CampaniaService {
 
     private final CampaniaRepository repo;
+    private final CampaniaMapper campaniaMapper;
 
     @Transactional(readOnly = true)
     public List<CampaniaResponse> listar(Long anioId) {
         var lista = anioId != null ? repo.findByAnioIdOrderByFechaInicioDesc(anioId) : repo.findAllByOrderByFechaInicioDesc();
-        return lista.stream().map(MatriculaMapper::toResponse).toList();
+        return lista.stream().map(campaniaMapper::toResponse).toList();
     }
 
     @Transactional
@@ -30,7 +32,7 @@ public class CampaniaService {
         if (repo.existsByAnioIdAndNombre(req.anioId(), req.nombre().trim())) {
             throw new BusinessRuleException("Ya existe una campaña con ese nombre para el año.");
         }
-        return MatriculaMapper.toResponse(repo.save(CampaniaMatricula.builder()
+        return campaniaMapper.toResponse(repo.save(CampaniaMatricula.builder()
             .anioId(req.anioId()).nombre(req.nombre().trim())
             .fechaInicio(req.fechaInicio()).fechaFin(req.fechaFin()).estado("PLANIFICADA").build()));
     }
@@ -45,14 +47,14 @@ public class CampaniaService {
         c.setNombre(req.nombre().trim());
         c.setFechaInicio(req.fechaInicio());
         c.setFechaFin(req.fechaFin());
-        return MatriculaMapper.toResponse(repo.save(c));
+        return campaniaMapper.toResponse(repo.save(c));
     }
 
     /** Solo una campaña ABIERTA por año. */
     @Transactional
     public CampaniaResponse abrir(Long id) {
         CampaniaMatricula c = obtener(id);
-        if ("ABIERTA".equals(c.getEstado())) return MatriculaMapper.toResponse(c);
+        if ("ABIERTA".equals(c.getEstado())) return campaniaMapper.toResponse(c);
         if ("CERRADA".equals(c.getEstado())) {
             throw new BusinessRuleException("Una campaña CERRADA no se puede reabrir; cree una nueva.");
         }
@@ -60,7 +62,7 @@ public class CampaniaService {
             throw new BusinessRuleException("Ya hay una campaña ABIERTA para este año: " + otra.getNombre());
         });
         c.setEstado("ABIERTA");
-        return MatriculaMapper.toResponse(repo.save(c));
+        return campaniaMapper.toResponse(repo.save(c));
     }
 
     @Transactional
@@ -70,7 +72,7 @@ public class CampaniaService {
             throw new BusinessRuleException("Solo se puede cerrar una campaña ABIERTA.");
         }
         c.setEstado("CERRADA");
-        return MatriculaMapper.toResponse(repo.save(c));
+        return campaniaMapper.toResponse(repo.save(c));
     }
 
     private CampaniaMatricula obtener(Long id) {

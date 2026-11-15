@@ -13,6 +13,7 @@ import pe.edu.upeu.eduspace.calificaciones.entity.MatriculaLocal;
 import pe.edu.upeu.eduspace.calificaciones.entity.Nota;
 import pe.edu.upeu.eduspace.calificaciones.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.calificaciones.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.calificaciones.mapper.NotaMapper;
 import pe.edu.upeu.eduspace.calificaciones.repository.CriterioEvaluacionRepository;
 import pe.edu.upeu.eduspace.calificaciones.repository.MatriculaLocalRepository;
 import pe.edu.upeu.eduspace.calificaciones.repository.NotaRepository;
@@ -32,6 +33,7 @@ public class NotaService {
     private final CriterioService criterioService;
     private final PromedioService promedioService;
     private final DocenteAutorizacionService autorizacion;
+    private final NotaMapper notaMapper;
 
     @Transactional
     public NotaResponse registrarOActualizarNota(Long notaId, NotaRequest request, Long usuarioId, boolean esAdmin) {
@@ -125,22 +127,7 @@ public class NotaService {
     }
 
     public NotaResponse toResponse(Nota n) {
-        return NotaResponse.builder()
-            .id(n.getId())
-            .matriculaId(n.getMatriculaId())
-            .alumnoId(n.getAlumnoId())
-            .seccionId(n.getSeccionId())
-            .cursoId(n.getCursoId())
-            .periodoId(n.getPeriodoId())
-            .criterioId(n.getCriterio().getId())
-            .criterioNombre(n.getCriterio().getNombre())
-            .valor(n.getValor())
-            .origen(n.getOrigen())
-            .origenId(n.getOrigenId())
-            .registradoPor(n.getRegistradoPor())
-            .registradoEn(n.getRegistradoEn())
-            .actualizadoEn(n.getActualizadoEn())
-            .build();
+        return notaMapper.toResponse(n);
     }
 }
 

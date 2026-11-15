@@ -8,6 +8,7 @@ import pe.edu.upeu.eduspace.matricula.client.PlanificacionClient;
 import pe.edu.upeu.eduspace.matricula.client.PlanificacionGateway;
 import pe.edu.upeu.eduspace.matricula.dto.Dtos.CupoResponse;
 import pe.edu.upeu.eduspace.matricula.exception.BusinessRuleException;
+import pe.edu.upeu.eduspace.matricula.mapper.CupoMapper;
 import pe.edu.upeu.eduspace.matricula.repository.CupoSeccionRepository;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class CupoService {
 
     private final CupoSeccionRepository cupoRepository;
     private final PlanificacionGateway planificacion;
+    private final CupoMapper cupoMapper;
 
     /** Crea o sincroniza la fila de cupo de la sección la primera vez que se usa. */
     @Transactional
@@ -65,7 +67,7 @@ public class CupoService {
         // Una sección eliminada en planificación deja su fila de cupo aquí: no se muestra. Si planificación no devolvió
         // secciones (caída o año vacío) no se puede afirmar nada y se devuelve lo que hay.
         var ids = vigentes.stream().map(PlanificacionClient.Seccion::id).collect(java.util.stream.Collectors.toSet());
-        cupos.stream().filter(c -> ids.isEmpty() || ids.contains(c.getSeccionId())).forEach(c -> res.add(MatriculaMapper.toResponse(c)));
+        cupos.stream().filter(c -> ids.isEmpty() || ids.contains(c.getSeccionId())).forEach(c -> res.add(cupoMapper.toResponse(c)));
         return res;
     }
 }

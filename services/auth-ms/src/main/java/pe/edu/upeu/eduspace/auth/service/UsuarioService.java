@@ -40,11 +40,12 @@ public class UsuarioService {
     private final AuthService authService;
     /** Refleja cada cambio en Keycloak (si está habilitado). Si Keycloak falla, la excepción deshace también el cambio local. */
     private final KeycloakAdminClient keycloak;
+    private final pe.edu.upeu.eduspace.auth.mapper.UsuarioMapper usuarioMapper;
 
     @Transactional(readOnly = true)
     public PageResponse<UsuarioResponse> listar(String texto, String rol, Boolean activo, Pageable pageable) {
         var page = usuarios.buscar(texto == null ? "" : texto.trim(), rol == null ? "" : rol.trim().toUpperCase(), activo, pageable);
-        return new PageResponse<>(page.getContent().stream().map(UsuarioService::toResponse).toList(),
+        return new PageResponse<>(page.getContent().stream().map(this::toResponse).toList(),
             page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages());
     }
 
@@ -228,9 +229,7 @@ public class UsuarioService {
         return sb + "a1";           // garantiza letra y número
     }
 
-    static UsuarioResponse toResponse(Usuario u) {
-        return new UsuarioResponse(u.getId(), u.getUsername(), u.getEmail(), u.getNombres(), u.getApellidos(),
-            Boolean.TRUE.equals(u.getActivo()), u.estaBloqueado(), Boolean.TRUE.equals(u.getDebeCambiarClave()),
-            u.getRoles().stream().map(Rol::getNombre).sorted().toList(), u.getUltimoLogin(), u.getCreadoEn());
+    UsuarioResponse toResponse(Usuario u) {
+        return usuarioMapper.toResponse(u);
     }
 }

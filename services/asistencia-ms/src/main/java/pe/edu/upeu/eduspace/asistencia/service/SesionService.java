@@ -17,6 +17,7 @@ import pe.edu.upeu.eduspace.asistencia.entity.MatriculaLocal;
 import pe.edu.upeu.eduspace.asistencia.entity.SesionAsistencia;
 import pe.edu.upeu.eduspace.asistencia.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.asistencia.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.asistencia.mapper.AsistenciaMapper;
 import pe.edu.upeu.eduspace.asistencia.repository.DetalleRepository;
 import pe.edu.upeu.eduspace.asistencia.repository.MatriculaLocalRepository;
 import pe.edu.upeu.eduspace.asistencia.repository.SesionRepository;
@@ -38,17 +39,19 @@ public class SesionService {
     private final MatriculaLocalService matriculaLocalService;
     private final PlanificacionGateway planificacion;
     private final AsistenciaProperties props;
+    private final AsistenciaMapper asistenciaMapper;
     private final TransactionTemplate tx;
 
     public SesionService(SesionRepository sesionRepo, DetalleRepository detalleRepo, MatriculaLocalRepository matriculaRepo,
                          MatriculaLocalService matriculaLocalService, PlanificacionGateway planificacion,
-                         AsistenciaProperties props, PlatformTransactionManager txm) {
+                         AsistenciaProperties props, AsistenciaMapper asistenciaMapper, PlatformTransactionManager txm) {
         this.sesionRepo = sesionRepo;
         this.detalleRepo = detalleRepo;
         this.matriculaRepo = matriculaRepo;
         this.matriculaLocalService = matriculaLocalService;
         this.planificacion = planificacion;
         this.props = props;
+        this.asistenciaMapper = asistenciaMapper;
         this.tx = new TransactionTemplate(txm);
     }
 
@@ -102,13 +105,11 @@ public class SesionService {
         Map<Long, MatriculaLocal> matriculas = matriculaRepo.findAllById(detalles.stream().map(AsistenciaDetalle::getMatriculaId).toList())
             .stream().collect(Collectors.toMap(MatriculaLocal::getMatriculaId, Function.identity()));
         List<DetalleResponse> alumnos = detalles.stream()
-            .map(d -> new DetalleResponse(d.getId(), d.getMatriculaId(), d.getAlumnoId(),
-                matriculas.containsKey(d.getMatriculaId()) ? matriculas.get(d.getMatriculaId()).getAlumnoNombre() : "Alumno " + d.getAlumnoId(),
-                d.getEstado(), d.getMinutosTarde(), d.getObservacion(), Boolean.TRUE.equals(d.getConfirmado())))
+            .map(d -> asistenciaMapper.toDetalleResponse(d,
+                matriculas.containsKey(d.getMatriculaId()) ? matriculas.get(d.getMatriculaId()).getAlumnoNombre() : "Alumno " + d.getAlumnoId()))
             .sorted(java.util.Comparator.comparing(DetalleResponse::alumnoNombre))
             .toList();
-        return new SesionResponse(s.getId(), s.getAnioId(), s.getPeriodoId(), s.getSeccionId(), s.getFecha(), s.getTipo(),
-            s.getCursoId(), s.getBloqueId(), s.getDocenteId(), s.getEstado(), s.getCerradaEn(), alumnos);
+        return asistenciaMapper.toSesionResponse(s, alumnos);
     }
 
     @Transactional(readOnly = true)

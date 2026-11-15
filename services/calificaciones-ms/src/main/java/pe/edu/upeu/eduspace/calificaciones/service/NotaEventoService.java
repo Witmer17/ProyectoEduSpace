@@ -15,6 +15,7 @@ import pe.edu.upeu.eduspace.calificaciones.repository.CierrePeriodoRepository;
 import pe.edu.upeu.eduspace.calificaciones.repository.CriterioEvaluacionRepository;
 import pe.edu.upeu.eduspace.calificaciones.repository.EventoProcesadoRepository;
 import pe.edu.upeu.eduspace.calificaciones.entity.NotaPendiente;
+import pe.edu.upeu.eduspace.calificaciones.mapper.NotaMapper;
 import pe.edu.upeu.eduspace.calificaciones.repository.NotaPendienteRepository;
 import pe.edu.upeu.eduspace.calificaciones.repository.NotaRepository;
 
@@ -37,6 +38,7 @@ public class NotaEventoService {
     private final EventoProcesadoRepository eventoProcesadoRepository;
     private final PromedioService promedioService;
     private final NotaPendienteRepository pendienteRepository;
+    private final NotaMapper notaMapper;
 
     @Transactional
     public void procesarTareaCalificada(UUID eventId, TareaCalificadaEvent event) {
@@ -215,20 +217,7 @@ public class NotaEventoService {
     @Transactional(readOnly = true)
     public List<NotaPendienteResponse> listarPendientes(Long seccionId, Long cursoId) {
         return pendienteRepository.findAbiertas(seccionId, cursoId).stream()
-            .map(p -> NotaPendienteResponse.builder()
-                .id(String.valueOf(p.getId()))
-                .origen(p.getOrigen())
-                .origenId(p.getOrigenId())
-                .titulo(p.getTitulo())
-                .alumnoId(p.getAlumnoId())
-                .matriculaId(p.getMatriculaId())
-                .seccionId(p.getSeccionId())
-                .cursoId(p.getCursoId())
-                .periodoId(p.getPeriodoId())
-                .valor(p.getValor())
-                .fechaEvento(p.getFechaEvento())
-                .motivo(p.getEstado())
-                .build())
+            .map(notaMapper::toPendienteResponse)
             .toList();
     }
 }

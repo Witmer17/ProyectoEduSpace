@@ -9,6 +9,7 @@ import pe.edu.upeu.eduspace.pago.entity.ConceptoPago;
 import pe.edu.upeu.eduspace.pago.entity.Tarifa;
 import pe.edu.upeu.eduspace.pago.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.pago.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.pago.mapper.TarifaMapper;
 import pe.edu.upeu.eduspace.pago.repository.ConceptoPagoRepository;
 import pe.edu.upeu.eduspace.pago.repository.CuotaRepository;
 import pe.edu.upeu.eduspace.pago.repository.TarifaRepository;
@@ -23,6 +24,7 @@ public class TarifaService {
     private final ConceptoPagoRepository conceptoPagoRepository;
     private final CuotaRepository cuotaRepository;
     private final GeneradorCuotasService generadorCuotasService;
+    private final TarifaMapper tarifaMapper;
 
     @Transactional(readOnly = true)
     public List<TarifaResponse> listarPorAnio(Long anioId) {
@@ -79,20 +81,7 @@ public class TarifaService {
     }
 
     private TarifaResponse toResponse(Tarifa t) {
-        return TarifaResponse.builder()
-            .id(t.getId())
-            .anioId(t.getAnioId())
-            .nivelId(t.getNivelId())
-            .gradoId(t.getGradoId())
-            .conceptoId(t.getConcepto().getId())
-            .conceptoCodigo(t.getConcepto().getCodigo())
-            .conceptoNombre(t.getConcepto().getNombre())
-            .monto(t.getMonto())
-            .numCuotas(t.getNumCuotas())
-            .mesInicio(t.getMesInicio())
-            .diaVencimiento(t.getDiaVencimiento())
-            .activo(t.getActivo())
-            .build();
+        return tarifaMapper.toResponse(t);
     }
 }
 

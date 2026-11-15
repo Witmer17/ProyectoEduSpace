@@ -12,6 +12,7 @@ import pe.edu.upeu.eduspace.calificaciones.entity.CierrePeriodo;
 import pe.edu.upeu.eduspace.calificaciones.entity.CriterioEvaluacion;
 import pe.edu.upeu.eduspace.calificaciones.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.calificaciones.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.calificaciones.mapper.CriterioMapper;
 import pe.edu.upeu.eduspace.calificaciones.repository.CierrePeriodoRepository;
 import pe.edu.upeu.eduspace.calificaciones.repository.CriterioEvaluacionRepository;
 import pe.edu.upeu.eduspace.calificaciones.repository.NotaRepository;
@@ -31,6 +32,7 @@ public class CriterioService {
     private final PlanificacionClient planificacionClient;
     private final NotaEventoService notaEventoService;
     private final DocenteAutorizacionService autorizacion;
+    private final CriterioMapper criterioMapper;
 
     @Transactional
     public CriterioResponse crearCriterio(CriterioRequest request, Long usuarioId, boolean esAdmin) {
@@ -183,18 +185,7 @@ public class CriterioService {
     }
 
     public CriterioResponse toResponse(CriterioEvaluacion c) {
-        return CriterioResponse.builder()
-            .id(c.getId())
-            .anioId(c.getAnioId())
-            .periodoId(c.getPeriodoId())
-            .seccionId(c.getSeccionId())
-            .cursoId(c.getCursoId())
-            .nombre(c.getNombre())
-            .peso(c.getPeso())
-            .origenTipo(c.getOrigenTipo())
-            .creadoPor(c.getCreadoPor())
-            .creadoEn(c.getCreadoEn())
-            .build();
+        return criterioMapper.toResponse(c);
     }
 }
 
