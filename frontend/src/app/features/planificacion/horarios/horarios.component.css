@@ -1,0 +1,126 @@
+:host {
+  display: block;
+}
+
+.curso-horas {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.88rem;
+  margin-top: 6px;
+}
+
+.barra-cupo {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.barra-cupo span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+}
+
+.grilla {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.grilla th, .grilla td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.grilla thead th {
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 12px 10px;
+}
+
+.grilla th.hora {
+  width: 85px;
+  background: var(--bg);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.grilla tr.receso {
+  background: #f1f5f9;
+}
+
+.receso-txt {
+  font-weight: 700;
+  color: var(--ink-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  padding: 10px !important;
+}
+
+.clase {
+  width: 100%;
+  min-height: 58px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--primary-soft);
+  border: 1px solid #bfdbfe;
+  color: var(--primary);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all 0.15s ease;
+}
+
+.clase:hover {
+  background: #dbeafe;
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(30, 64, 175, 0.12);
+}
+
+.clase strong {
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1e3a8a;
+}
+
+.clase span {
+  font-size: 0.78rem;
+  color: var(--ink-2);
+}
+
+.vacia {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 8px;
+  border: 1.5px dashed var(--line-2);
+  background: transparent;
+  color: var(--line-2);
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.15s ease;
+}
+
+.vacia:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft);
+}

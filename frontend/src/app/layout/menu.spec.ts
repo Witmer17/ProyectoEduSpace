@@ -115,9 +115,8 @@ describe('espacios de trabajo (hubs)', () => {
     expect(hubDe('/configuracion/estructura')?.hub.id).toBe('configuracion');
     expect(hubDe('/configuracion')?.pestana.etiqueta).toBe('Resumen');
     expect(hubDe('/configuracion/grados')?.pestana.etiqueta).toBe('Niveles y grados'); // gana la ruta más específica sobre «/configuracion»
-    expect(hubDe('/matriculas/campanias')?.hub.id).toBe('apertura');
-    expect(hubDe('/planificacion/anios')?.hub.id).toBe('apertura');
-    expect(hubDe('/apertura')?.pestana.etiqueta).toBe('Pasos de la apertura');
+    expect(hubDe('/matriculas/campanias')?.hub.id).toBe('configuracion');
+    expect(hubDe('/planificacion/anios')?.hub.id).toBe('configuracion');
     expect(hubDe('/planificacion/aulas')).toBeNull(); // el catálogo de aulas ahora se administra dentro de la estructura académica
     expect(hubDe('/planificacion/panel')?.hub.id).toBe('aulas');
     expect(hubDe('/inicio')).toBeNull();
@@ -169,7 +168,7 @@ describe('Matrícula y secretaría', () => {
     for (const t of tabs) expect(t.roles, t.ruta).toEqual(['ADMIN', 'SECRETARIA']);
     expect(hubDe('/matricula/asistente')?.pestana.etiqueta).toBe('Asistente de matrícula');
     expect(hubDe('/matriculas?nueva=1')?.hub.id).toBe('matricula');
-    expect(hubDe('/matriculas/campanias')?.hub.id).toBe('apertura');
+    expect(hubDe('/matriculas/campanias')?.hub.id).toBe('configuracion');
     for (const rol of ['ADMIN', 'SECRETARIA']) expect(itemsDe(rol).map(i => i.hub), rol).toContain('matricula');
     expect(itemsDe('DOCENTE').some(i => i.hub === 'matricula')).toBe(false);
   });
@@ -257,31 +256,29 @@ describe('Personal y Configuración (barra superior del personal)', () => {
   it('Configuración reúne todo lo configurable del colegio, en orden y por grupos', () => {
     const tabs = HUBS.find(h => h.id === 'configuracion')!.pestanas;
     expect(tabs.map(p => p.ruta)).toEqual([
-      '/configuracion', '/configuracion/colegio', '/configuracion/grados', '/configuracion/cursos', '/configuracion/estructura', '/configuracion/areas', '/configuracion/horarios'
+      '/configuracion',
+      '/configuracion/colegio',
+      '/configuracion/grados',
+      '/configuracion/estructura',
+      '/planificacion/anios',
+      '/planificacion/feriados',
+      '/configuracion/areas',
+      '/matriculas/campanias',
+      '/pagos/conceptos',
+      '/pagos/tarifas',
+      '/pagos/descuentos'
     ]);
     // el resumen abre el espacio y no tiene grupo; el resto sí, y los grupos van seguidos (un grupo no se parte en dos)
     expect(tabs[0].grupo).toBeUndefined();
     const grupos = tabs.slice(1).map(p => p.grupo);
     expect(grupos.every(g => !!g)).toBe(true);
-    expect(grupos.filter((g, i) => g !== grupos[i - 1])).toEqual(['El colegio', 'Personal']);
+    expect(grupos.filter((g, i) => g !== grupos[i - 1])).toEqual(['El colegio', 'Año escolar', 'Personal', 'Matrícula', 'Cobranza']);
   });
 
-  it('Apertura de periodo reúne lo necesario para abrir un año, en orden y por grupos', () => {
-    const tabs = HUBS.find(h => h.id === 'apertura')!.pestanas;
-    expect(tabs.map(p => p.ruta)).toEqual([
-      '/apertura', '/planificacion/anios', '/planificacion/feriados', '/pagos/conceptos', '/pagos/tarifas', '/pagos/descuentos', '/matriculas/campanias'
-    ]);
-    expect(tabs[0].grupo).toBeUndefined();
-    const grupos = tabs.slice(1).map(p => p.grupo);
-    expect(grupos.filter((g, i) => g !== grupos[i - 1])).toEqual(['Calendario', 'Cobros del año', 'Matrícula']);
-    // la secretaría ve el calendario y la campaña; los cobros son solo del administrador
-    expect(tabs.filter(p => p.roles.includes('SECRETARIA')).map(p => p.ruta)).toEqual(['/apertura', '/planificacion/anios', '/planificacion/feriados', '/matriculas/campanias']);
-  });
-
-  it('la barra horizontal del personal muestra Inicio, Personal, Configuración y Apertura de periodo', () => {
-    const hubsBarra = ['personal', 'configuracion', 'apertura'].map(id => HUBS.find(h => h.id === id)?.titulo);
-    expect(hubsBarra).toEqual(['Personal', 'Configuración', 'Apertura de periodo']);
-    expect(MENU.flatMap(g => g.items).some(i => i.hub === 'apertura' && i.roles.includes('SECRETARIA'))).toBe(true);
+  it('la barra horizontal del personal muestra Inicio, Personal y Configuración', () => {
+    const hubsBarra = ['personal', 'configuracion'].map(id => HUBS.find(h => h.id === id)?.titulo);
+    expect(hubsBarra).toEqual(['Personal', 'Configuración']);
+    expect(MENU.flatMap(g => g.items).some(i => i.hub === 'configuracion' && i.roles.includes('SECRETARIA'))).toBe(true);
   });
 
   it('las campañas y las tarifas ya no están en Alumnos ni en Finanzas', () => {
@@ -312,8 +309,16 @@ describe('Personal y Configuración (barra superior del personal)', () => {
   it('la secretaria ve en Configuración todo menos lo de cobranza (solo del administrador)', () => {
     const visibles = (id: string) => HUBS.find(h => h.id === id)!.pestanas.filter(p => p.roles.includes('SECRETARIA')).map(p => p.ruta);
     expect(visibles('personal')).toEqual(['/personal', '/areas', '/personal/asistencia']);
-    expect(visibles('configuracion')).toHaveLength(7);
-    expect(visibles('apertura')).not.toContain('/pagos/tarifas');
+    expect(visibles('configuracion')).toEqual([
+      '/configuracion',
+      '/configuracion/colegio',
+      '/configuracion/grados',
+      '/configuracion/estructura',
+      '/planificacion/anios',
+      '/planificacion/feriados',
+      '/configuracion/areas',
+      '/matriculas/campanias'
+    ]);
   });
 
   it('cada pantalla de configuración tiene su ruta y solo la abre el personal', () => {

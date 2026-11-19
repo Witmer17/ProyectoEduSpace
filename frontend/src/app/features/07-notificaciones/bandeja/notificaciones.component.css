@@ -1,0 +1,67 @@
+:host {
+  display: block;
+}
+
+.notif {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--card);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.notif:hover {
+  background: var(--bg);
+}
+
+.notif.sinleer {
+  background: var(--primary-soft);
+}
+
+.notif.sinleer:hover {
+  background: #e0edff;
+}
+
+.punto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-top: 6px;
+  flex-shrink: 0;
+  opacity: 0;
+}
+
+.notif.sinleer .punto {
+  opacity: 1;
+}
+
+.cuerpo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tit {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.msg {
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  line-height: 1.5;
+}

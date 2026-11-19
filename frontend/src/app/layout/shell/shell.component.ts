@@ -110,9 +110,8 @@ export class ShellComponent {
   protected readonly barraSuperior = computed(() => this.esAula() || this.esPersonal());
 
   /**
-   * Opciones de la barra del personal: Inicio, Alumnos (alumnos y apoderados, matrículas, asistencia, notas y cuentas), Personal (personas contratadas, su pago y asistencia, cuentas y roles), Configuración (información del colegio)
-   * y Apertura de periodo (todo lo necesario para abrir un año escolar).
-   * Las demás pantallas siguen existiendo (Ctrl+K y sus rutas); se irán ubicando en el nuevo diseño.
+   * Opciones de la barra del personal: solo tres opciones (Inicio, Personal y Configuración).
+   * Las demás pantallas siguen existiendo (Ctrl+K y sus rutas); al abrirlas llevan su menú vertical.
    */
   protected readonly navPersonal = computed(() => {
     const todos = this.menu().flatMap(g => g.items);
@@ -120,8 +119,11 @@ export class ShellComponent {
     if (!this.auth.tieneAlgunRol(PERSONAL)) {
       return HUBS_CAJA.map(id => todos.find(i => i.hub === id)).filter((i): i is NonNullable<typeof i> => !!i);
     }
-    return [todos.find(i => i.ruta === '/inicio' || i.ruta === '/secretaria'), todos.find(i => i.hub === 'alumnos'), todos.find(i => i.hub === 'matricula'), todos.find(i => i.hub === 'personal'), todos.find(i => i.hub === 'configuracion'), todos.find(i => i.hub === 'apertura')]
-      .filter((i): i is NonNullable<typeof i> => !!i);
+    return [
+      todos.find(i => i.ruta === '/inicio' || i.ruta === '/secretaria'),
+      todos.find(i => i.hub === 'personal'),
+      todos.find(i => i.hub === 'configuracion')
+    ].filter((i): i is NonNullable<typeof i> => !!i);
   });
 
   /** Enlaces de la barra superior según quién sea la persona. */

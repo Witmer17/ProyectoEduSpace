@@ -25,6 +25,18 @@ export class CobroService {
   pagarEnPasarela(codigoOrden: string, datos: DatosPasarela): Observable<ResultadoPasarela> {
     return this.http.post<ResultadoPasarela>(`${API}/pasarela/ordenes/${codigoOrden}/pagar`, datos);
   }
+  /** Qué pasarela está activa: la real (Mercado Pago) o la de demostración, y en qué modo (PRUEBA o CUENTA). */
+  estadoPasarela(): Observable<{ pasarela: 'MERCADOPAGO' | 'SIMULADA'; modo: string }> {
+    return this.http.get<{ pasarela: 'MERCADOPAGO' | 'SIMULADA'; modo: string }>(`${API}/pasarela/estado`);
+  }
+  /** La URL de Mercado Pago donde la familia paga la orden (el servidor fija el monto). */
+  pagarConMercadoPago(codigoOrden: string): Observable<{ codigo: string; redireccion: string; modo: string }> {
+    return this.http.post<{ codigo: string; redireccion: string; modo: string }>(`${API}/pasarela/ordenes/${codigoOrden}/mercadopago`, {});
+  }
+  /** Al volver de Mercado Pago: consulta los pagos de la orden y devuelve la matrícula ya actualizada. */
+  sincronizarMercadoPago(codigoOrden: string): Observable<EstadoMatriculaPago> {
+    return this.http.post<EstadoMatriculaPago>(`${API}/pasarela/ordenes/${codigoOrden}/mercadopago/sincronizar`, {});
+  }
   /** «Generar matrícula» con el crédito del alumno; el servidor rechaza si el crédito no alcanza. */
   generarMatricula(alumnoId: number): Observable<EstadoMatriculaPago> {
     return this.http.post<EstadoMatriculaPago>(`${API}/alumnos/${alumnoId}/matricula/generar`, {});
@@ -87,6 +99,14 @@ export class CobroService {
 
   pagarOnline(body: RegistrarPago): Observable<Pago> {
     return this.http.post<Pago>(`${API}/online`, body);
+  }
+  /** Pensiones con Mercado Pago: el servidor deja el pago pendiente y devuelve la URL de pago (la confirma el aviso de la pasarela). */
+  /** Al volver de Mercado Pago: una sola consulta del resultado del pago (sin sondeo). */
+  sincronizarPagoMercadoPago(pagoId: number): Observable<void> {
+    return this.http.post<void>(`${API}/online/mercadopago/${pagoId}/sincronizar`, {});
+  }
+  pagarOnlineMercadoPago(body: RegistrarPago): Observable<{ codigo: string; redireccion: string; modo: string }> {
+    return this.http.post<{ codigo: string; redireccion: string; modo: string }>(`${API}/online/mercadopago`, body);
   }
 
   // Pagos de apoderados por aprobar: los aprueba o rechaza caja (o el administrador)

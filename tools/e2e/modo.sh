@@ -21,6 +21,7 @@ esac
 printf '{\n  "authMode": "%s",\n  "keycloak": { "url": "%s", "realm": "eduspace", "clientId": "eduspace-web", "clientIdFormulario": "eduspace-web-form" }\n}\n' "$AUTH" "$KCURL" > "$CFG"
 echo "config.json → $AUTH"
 [ "$MODO" != "propio" ] && python3 "$AQUI/keycloak_redirects.py" || true
+mkdir -p "$AQUI/logs"   # antes de matar nada: si falta la carpeta de registros el arranque fallaba DESPUÉS de apagar los servicios
 for puerto in 18080 8099 8098 8097 8096 8095 8094 8093 8092 8091 8090 18761 18888; do
   for pid in $(ss -ltnp 2>/dev/null | grep ":$puerto " | grep -o 'pid=[0-9]*' | cut -d= -f2 | sort -u); do kill "$pid" 2>/dev/null || true; done
 done

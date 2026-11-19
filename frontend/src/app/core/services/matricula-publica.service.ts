@@ -25,8 +25,14 @@ export class MatriculaPublicaService {
   }
 
   /** Pasarela de pago de demostración: no se cobra nada. */
-  pagar(referencia: string, token: string, tarjeta: Tarjeta): Observable<ResumenMatricula> {
+  /** Con Mercado Pago no se envía la tarjeta: el resumen trae la URL donde pagar. */
+  pagar(referencia: string, token: string, tarjeta: Tarjeta | null): Observable<ResumenMatricula> {
     return this.http.post<ResumenMatricula>(`${API}/${referencia}/pagar`, { tarjeta }, { headers: new HttpHeaders({ [TOKEN]: token }) });
+  }
+
+  /** Qué pasarela usa la matrícula en línea: Mercado Pago real o la de demostración. */
+  pasarela(): Observable<{ mercadopago: boolean; modo: string }> {
+    return this.http.get<{ mercadopago: boolean; modo: string }>(`${API}/pasarela`);
   }
 
   resumen(referencia: string, token: string): Observable<ResumenMatricula> {

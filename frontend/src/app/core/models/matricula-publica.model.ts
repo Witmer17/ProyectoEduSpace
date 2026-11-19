@@ -64,6 +64,8 @@ export interface PensionResumen { descripcion: string; vence: string; monto: num
 export interface ClaseResumen { dia: string; hora: string; curso: string; docente: string }
 
 export interface ResumenMatricula {
+  /** URL de Mercado Pago donde la familia paga (solo con la pasarela real). */
+  redireccionPago?: string | null;
   /** INICIADA → PAGADA (en revisión) → APROBADA | RECHAZADA */
   estado: 'INICIADA' | 'PAGADA' | 'APROBADA' | 'RECHAZADA';
   referencia: string; codigo: string; alumno: string; alumnoDocumento: string; apoderado: string; grado: string; seccion: string; turno: string;

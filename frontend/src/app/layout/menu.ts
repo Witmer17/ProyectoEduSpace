@@ -108,6 +108,6 @@ export const MENU: GrupoMenu[] = [
   },
   {
     titulo: 'Administración',
-    items: [entradaHub('personal'), entradaHub('configuracion'), entradaHub('apertura'), entradaHub('administracion')]
+    items: [entradaHub('personal'), entradaHub('configuracion'), entradaHub('administracion')]
   }
 ];

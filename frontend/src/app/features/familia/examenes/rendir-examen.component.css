@@ -1,0 +1,85 @@
+:host {
+  display: block;
+}
+
+.cabecera-examen {
+  position: sticky;
+  top: 70px;
+  z-index: 25;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 4px 14px rgba(20, 33, 61, 0.08);
+}
+
+.reloj {
+  font-family: ui-monospace, monospace;
+  font-size: 1.25rem;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  letter-spacing: 1px;
+}
+
+.reloj.poco {
+  background: var(--danger-soft);
+  color: var(--danger);
+  animation: pulso 1s infinite alternate;
+}
+
+@keyframes pulso {
+  from { opacity: 0.8; }
+  to { opacity: 1; transform: scale(1.03); }
+}
+
+.respuesta {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
+.respuesta:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.92rem;
+}
+
+.opcion:hover {
+  background: var(--bg);
+  border-color: var(--line-2);
+}
+
+.opcion.marcada {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.opcion input {
+  width: 18px;
+  height: 18px;
+}

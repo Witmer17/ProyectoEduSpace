@@ -1,5 +1,5 @@
 export type EstadoCuota = 'PENDIENTE' | 'PARCIAL' | 'PAGADA' | 'VENCIDA' | 'ANULADA';
-export type MedioPago = 'EFECTIVO' | 'TARJETA' | 'YAPE_PLIN' | 'TRANSFERENCIA' | 'ONLINE_SIMULADO' | 'CREDITO';
+export type MedioPago = 'EFECTIVO' | 'TARJETA' | 'YAPE_PLIN' | 'TRANSFERENCIA' | 'ONLINE_SIMULADO' | 'MERCADOPAGO' | 'CREDITO';
 export type TipoComprobante = 'RECIBO' | 'BOLETA';
 
 export const MEDIOS_PAGO: MedioPago[] = ['EFECTIVO', 'TARJETA', 'YAPE_PLIN', 'TRANSFERENCIA'];
