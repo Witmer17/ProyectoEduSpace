@@ -141,6 +141,95 @@ Sin él, el sistema usa la pasarela de demostración, que no cobra nada de verda
 
 ---
 
+## 8. Los contenedores (qué son y cómo manejarlos)
+
+Algunas piezas del sistema no son programas de Java sino **contenedores**: cajas que traen su propio programa
+(una base de datos, Kafka, etc.). Se manejan con **Podman** (o Docker, si lo cambias con `CONTENEDORES=docker`).
+
+### 8.1 Lista de contenedores
+
+| Contenedor | Para qué sirve | Puerto en tu computadora |
+|---|---|---|
+| `e2e-pg-auth` | Base de datos de autenticación | 15440 |
+| `e2e-pg-planificacion` | Base de planificación | 15441 |
+| `e2e-pg-alumnos` | Base de alumnos | 15442 |
+| `e2e-pg-matricula` | Base de matrícula | 15443 |
+| `e2e-pg-asistencia` | Base de asistencia | 15444 |
+| `e2e-pg-calificaciones` | Base de calificaciones | 15445 |
+| `e2e-pg-pago` | Base de pagos | 15446 |
+| `e2e-pg-examenes` | Base de exámenes | 15447 |
+| `e2e-pg-tareas` | Base de tareas | 15448 |
+| `e2e-pg-notificaciones` | Base de notificaciones | 15449 |
+| `e2e-kafka` | Mensajería entre servicios | 19092 |
+| `e2e-minio` | Almacén de archivos (documentos, entregas) | 19000 |
+| `e2e-mailpit` | Correos de prueba (no salen a internet) | web: 18025 |
+| `eduspace-keycloak` | Keycloak (login con Keycloak) | 18090 |
+| `eduspace-prometheus`, `eduspace-grafana`, `eduspace-loki`, `eduspace-promtail` | Monitoreo y registros (opcional) | 19090, 13000, 13100 |
+
+Los contenedores `e2e-*` los crea `levantar.sh`. Keycloak lo crea `infra/keycloak/levantar-dev.sh`.
+El monitoreo se levanta aparte (ver `obs/README.md`).
+
+### 8.2 Ver si están encendidos
+
+```bash
+podman ps                         # solo los que están encendidos
+podman ps -a                      # todos, incluidos los apagados
+podman ps --format "{{.Names}} {{.Status}}"
+```
+
+Todos deben aparecer con estado `Up`.
+
+### 8.3 Ver los registros de un contenedor
+
+```bash
+podman logs --tail 50 e2e-pg-pago
+podman logs --tail 50 eduspace-keycloak
+```
+
+### 8.4 Encender o apagar uno solo
+
+```bash
+podman stop e2e-mailpit           # apagar uno (sin borrarlo)
+podman start e2e-mailpit          # volver a encenderlo
+```
+
+Apagar uno no borra sus datos. Úsalo, por ejemplo, para liberar memoria.
+
+### 8.5 Keycloak
+
+```bash
+cd ~/eduspacePRACTICA/infra/keycloak
+./levantar-dev.sh                 # lo enciende (importa el realm "eduspace")
+./levantar-dev.sh --detener       # lo apaga
+```
+
+Consola de administración: http://localhost:18090 (usuario `admin`).
+
+> Si borras el contenedor de Keycloak, se pierden las cuentas que creaste desde la aplicación.
+
+### 8.6 Lo que NO debes hacer sin pensar
+
+| Acción | Consecuencia |
+|---|---|
+| `podman rm -f e2e-pg-pago` | Borra la base de pagos con todos sus datos. |
+| `./detener.sh` (en `tools/e2e`) | Borra todos los contenedores `e2e-*` y con ellos las bases. |
+| `./levantar.sh` sin `--sin-reset` | Vuelve a crear todas las bases desde cero. |
+| `podman rm -f eduspace-keycloak` | Se pierden las cuentas creadas en Keycloak. |
+
+Antes de borrar algo, pregunta. Para empezar limpio de verdad, usa `./levantar.sh` (sin `--sin-reset`), que
+recrea las bases, o `./levantar-dev.sh` de Keycloak.
+
+### 8.7 Problemas con contenedores
+
+| Problema | Qué hacer |
+|---|---|
+| "address already in use" o puerto ocupado | Otro programa usa ese puerto. Ejecuta `podman ps` y apaga lo que sobre con `podman stop <nombre>`. |
+| Un contenedor aparece como `Exited` | Mira sus registros (`podman logs <nombre>`) y vuelve a encenderlo con `podman start <nombre>`. |
+| `podman: command not found` | Instala Podman, o usa Docker con `export CONTENEDORES=docker` antes de los scripts. |
+| Podman no responde | Enciende el servicio: `systemctl --user start podman.socket`. |
+
+---
+
 ## Problemas frecuentes
 
 | Problema | Qué hacer |
@@ -155,7 +244,8 @@ Sin él, el sistema usa la pasarela de demostración, que no cobra nada de verda
 
 ## Orden resumido (uso diario)
 
-1. `cd tools/e2e && ./levantar.sh --sin-reset --auth-propio` → espera 90 s.
-2. Comprueba los puertos (paso 2).
-3. `cd frontend && npm run auth:eduspace && npm start`.
-4. Abre http://localhost:4200 y entra con `admin`.
+1. Comprueba que los contenedores estén arriba: `podman ps` (sección 8).
+2. `cd tools/e2e && ./levantar.sh --sin-reset --auth-propio` → espera 90 s.
+3. Comprueba los puertos (paso 2).
+4. `cd frontend && npm run auth:eduspace && npm start`.
+5. Abre http://localhost:4200 y entra con `admin`.
