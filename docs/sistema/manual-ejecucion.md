@@ -228,6 +228,56 @@ recrea las bases, o `./levantar-dev.sh` de Keycloak.
 | `podman: command not found` | Instala Podman, o usa Docker con `export CONTENEDORES=docker` antes de los scripts. |
 | Podman no responde | Enciende el servicio: `systemctl --user start podman.socket`. |
 
+### 8.8 Si usas Docker en lugar de Podman
+
+Todos los scripts del proyecto usan Podman por defecto. Para usar Docker, basta con decirle a los scripts que lo usen,
+con la variable `CONTENEDORES`. Los nombres y los puertos de los contenedores son los mismos.
+
+**Paso 1: que el servicio de Docker esté encendido**
+
+```bash
+sudo systemctl start docker       # Linux
+```
+En Windows o macOS, abre **Docker Desktop** y espera a que diga que está en ejecución.
+
+**Paso 2: indicar Docker en los scripts** (en cada terminal donde los ejecutes):
+
+```bash
+export CONTENEDORES=docker
+cd ~/eduspacePRACTICA/tools/e2e
+./levantar.sh --sin-reset --auth-propio
+```
+
+Así todos los scripts (`levantar.sh`, `detener.sh`, `modo.sh`, y los de Keycloak) usan Docker.
+
+**Equivalencias de comandos:**
+
+| Qué quieres hacer | Podman | Docker |
+|---|---|---|
+| Ver los que están encendidos | `podman ps` | `docker ps` |
+| Ver todos (también apagados) | `podman ps -a` | `docker ps -a` |
+| Ver registros | `podman logs --tail 50 <nombre>` | `docker logs --tail 50 <nombre>` |
+| Apagar uno (sin borrar) | `podman stop <nombre>` | `docker stop <nombre>` |
+| Encender uno | `podman start <nombre>` | `docker start <nombre>` |
+| Borrar uno (y sus datos) | `podman rm -f <nombre>` | `docker rm -f <nombre>` |
+
+**Monitoreo (opcional)** con Docker Compose:
+
+```bash
+cd ~/eduspacePRACTICA/obs
+docker compose -f compose-dev.yml up -d     # encender
+docker compose -f compose-dev.yml down      # apagar (no borra los volúmenes de datos)
+```
+Con Podman, usa `compose-podman.yml` en lugar de `compose-dev.yml`.
+
+**Problemas con Docker:**
+
+| Problema | Qué hacer |
+|---|---|
+| `Cannot connect to the Docker daemon` | El servicio de Docker no está encendido (ver Paso 1). |
+| `permission denied` al usar `docker` | En Linux, agrega tu usuario al grupo: `sudo usermod -aG docker $USER`, luego cierra sesión y vuelve a entrar. |
+| Los scripts siguen usando Podman | Revisa que hiciste `export CONTENEDORES=docker` en esa misma terminal. |
+
 ---
 
 ## Problemas frecuentes
