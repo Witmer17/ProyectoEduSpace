@@ -51,7 +51,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/pagos/webhook/**").permitAll()
 
                 // Pagos
-                .requestMatchers(HttpMethod.POST, "/api/v1/pagos/online").hasRole("APODERADO")
+                .requestMatchers(HttpMethod.POST, "/api/v1/pagos/online", "/api/v1/pagos/online/**").hasRole("APODERADO")
                 .requestMatchers(HttpMethod.POST, "/api/v1/pagos/mercadopago/preferencia").hasRole("APODERADO")
                 .requestMatchers(HttpMethod.POST, "/api/v1/pagos").hasAnyRole("CAJERO", "ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/pagos/*/anular").hasRole("ADMIN")

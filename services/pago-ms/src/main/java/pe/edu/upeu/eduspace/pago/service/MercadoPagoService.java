@@ -33,6 +33,14 @@ public class MercadoPagoService {
 
     private static final String MP_API_URL = "https://api.mercadopago.com";
 
+    public boolean tieneTokenConfigurado() {
+        return mpProps.getAccessToken() != null && !mpProps.getAccessToken().isBlank();
+    }
+
+    public boolean esProduccion() {
+        return mpProps.isProduccion();
+    }
+
     /**
      * Crea una preferencia de pago en Mercado Pago Checkout Pro para las cuotas seleccionadas.
      */

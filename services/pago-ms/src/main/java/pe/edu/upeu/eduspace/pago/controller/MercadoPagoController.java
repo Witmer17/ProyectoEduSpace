@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upeu.eduspace.pago.dto.CrearPreferenciaMpRequest;
 import pe.edu.upeu.eduspace.pago.dto.PreferenciaMpResponse;
+import pe.edu.upeu.eduspace.pago.dto.RegistrarPagoRequest;
 import pe.edu.upeu.eduspace.pago.security.UsuarioActual;
 import pe.edu.upeu.eduspace.pago.service.MercadoPagoService;
 
@@ -24,6 +25,42 @@ import java.util.Map;
 public class MercadoPagoController {
 
     private final MercadoPagoService mercadoPagoService;
+
+    @GetMapping("/pasarela/estado")
+    @Operation(summary = "Consultar qué pasarela de pagos está activa")
+    public ResponseEntity<Map<String, String>> estadoPasarela() {
+        boolean activo = mercadoPagoService.tieneTokenConfigurado();
+        String pasarela = activo ? "MERCADOPAGO" : "SIMULADA";
+        String modo = mercadoPagoService.esProduccion() ? "PRODUCCION" : "PRUEBA";
+        return ResponseEntity.ok(Map.of("pasarela", pasarela, "modo", modo));
+    }
+
+    @PostMapping("/online/mercadopago")
+    @Operation(summary = "Iniciar pago online de pensiones con Mercado Pago (APODERADO)")
+    public ResponseEntity<Map<String, String>> pagarOnlineMercadoPago(
+            @Valid @RequestBody RegistrarPagoRequest req,
+            @AuthenticationPrincipal Jwt jwt) {
+        Long apoderadoUsuarioId = UsuarioActual.id(jwt);
+        CrearPreferenciaMpRequest prefReq = new CrearPreferenciaMpRequest();
+        prefReq.setAlumnoId(req.getAlumnoId());
+        prefReq.setTipoComprobante(req.getTipoComprobante());
+        prefReq.setDetalles(req.getDetalles());
+        PreferenciaMpResponse pref = mercadoPagoService.crearPreferencia(prefReq, apoderadoUsuarioId);
+        String redireccion = (pref.getSandboxInitPoint() != null && !pref.getSandboxInitPoint().isBlank())
+            ? pref.getSandboxInitPoint()
+            : pref.getInitPoint();
+        return ResponseEntity.ok(Map.of(
+            "codigo", pref.getPreferenceId(),
+            "redireccion", redireccion,
+            "modo", "PRUEBA"
+        ));
+    }
+
+    @PostMapping("/online/mercadopago/{pagoId}/sincronizar")
+    @Operation(summary = "Sincronizar retorno de Mercado Pago")
+    public ResponseEntity<Void> sincronizarPagoMercadoPago(@PathVariable Long pagoId) {
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping("/mercadopago/preferencia")
     @Operation(summary = "Crear preferencia de pago en Mercado Pago Checkout Pro (APODERADO)")
