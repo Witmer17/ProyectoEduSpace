@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { FondoResumen, MovimientoFondo } from '../../../../core/models/fondo.model';
 import { AREA_DOCENCIA, Area } from '../../../../core/models/planificacion.model';
 import { FondoService } from '../../../../core/services/fondo.service';
-import { fechaCorta, soles } from '../../../12-comun/personal/rrhh';
+import { fechaCorta, soles } from '../../../personal/rrhh';
 import { ResultadoFila, aCentimos, evaluarAsignacion, evaluarReparto, maximoAsignable, partesIguales, porcentajeDe } from './fondo';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ConfirmService } from '../../../../core/services/confirm.service';

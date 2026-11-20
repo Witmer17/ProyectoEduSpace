@@ -47,7 +47,13 @@ export class LoginComponent {
           this.router.navigate(['/cambiar-clave']);
           return;
         }
-        this.router.navigateByUrl(this.route.snapshot.queryParams['returnUrl'] ?? rutaInicial(this.auth.roles()));
+        const destino = rutaInicial(this.auth.roles());
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+        if (returnUrl && returnUrl !== '/' && returnUrl !== '/inicio' && returnUrl !== '/portal') {
+          this.router.navigateByUrl(returnUrl).catch(() => this.router.navigateByUrl(destino));
+        } else {
+          this.router.navigateByUrl(destino);
+        }
       },
       error: (e: HttpErrorResponse) => {
         this.cargando.set(false);

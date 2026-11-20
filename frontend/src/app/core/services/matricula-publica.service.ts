@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { InicioMatricula, OfertaMatricula, ResumenMatricula, SolicitudMatricula, Tarjeta } from '../models/matricula-publica.model';
+import { DescuentoVista, InicioMatricula, OfertaMatricula, ResumenMatricula, SolicitudMatricula, Tarjeta } from '../models/matricula-publica.model';
 
 const API = '/api/v1/publico/matricula';
 const TOKEN = 'X-Matricula-Token';
@@ -15,13 +15,24 @@ export class MatriculaPublicaService {
     return this.http.get<OfertaMatricula>(`${API}/oferta`);
   }
 
+  /** Valida un código de descuento (404 si no existe o ya no está vigente). */
+  descuento(codigo: string): Observable<DescuentoVista> {
+    return this.http.get<DescuentoVista>(`${API}/descuento/${encodeURIComponent(codigo)}`);
+  }
+
   iniciar(s: SolicitudMatricula): Observable<InicioMatricula> {
     return this.http.post<InicioMatricula>(API, s);
   }
 
   /** Pasarela de pago de demostración: no se cobra nada. */
-  pagar(referencia: string, token: string, tarjeta: Tarjeta): Observable<ResumenMatricula> {
+  /** Con Mercado Pago no se envía la tarjeta: el resumen trae la URL donde pagar. */
+  pagar(referencia: string, token: string, tarjeta: Tarjeta | null): Observable<ResumenMatricula> {
     return this.http.post<ResumenMatricula>(`${API}/${referencia}/pagar`, { tarjeta }, { headers: new HttpHeaders({ [TOKEN]: token }) });
+  }
+
+  /** Qué pasarela usa la matrícula en línea: Mercado Pago real o la de demostración. */
+  pasarela(): Observable<{ mercadopago: boolean; modo: string }> {
+    return this.http.get<{ mercadopago: boolean; modo: string }>(`${API}/pasarela`);
   }
 
   resumen(referencia: string, token: string): Observable<ResumenMatricula> {

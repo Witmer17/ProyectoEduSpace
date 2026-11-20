@@ -48,6 +48,8 @@ import {
   ResultadoGeneracion
 } from '../models/planificacion.model';
 
+import { PropuestaAulas, ResultadoAsignacionAulas } from '../models/asignacion-aulas.model';
+
 const API = '/api/v1/planificacion';
 
 @Injectable({ providedIn: 'root' })
@@ -168,9 +170,10 @@ export class PlanificacionService {
   }
 
   /** Todo el personal del colegio (o el de un área), no solo los docentes. `docentes()` sigue devolviendo solo Docencia. */
-  personal(q = '', page = 0, size = 20, areaId?: number | null): Observable<Page<Docente>> {
+  personal(q = '', page = 0, size = 20, areaId?: number | null, estado: 'ACTIVO' | 'INACTIVO' | 'TODOS' = 'TODOS'): Observable<Page<Docente>> {
     let params = new HttpParams().set('page', page).set('size', size);
     if (q) params = params.set('q', q);
+    if (estado !== 'TODOS') params = params.set('estado', estado);
     params = areaId ? params.set('areaId', areaId) : params.set('todas', true);
     return this.http
       .get<{ contenido: Docente[]; pagina: number; tamano: number; total: number; totalPaginas: number }>(`${API}/docentes`, { params })
@@ -190,6 +193,19 @@ export class PlanificacionService {
     return this.http.patch<Area>(`${API}/areas/${id}/activo`, {}, { params: new HttpParams().set('activo', activo) });
   }
 
+  // Asignación automática de aulas (solo las secciones sin aula; cada grado en su pabellón)
+  asignacionAulas(anioId: number): Observable<PropuestaAulas> {
+    return this.http.get<PropuestaAulas>(`${API}/asignacion-aulas`, { params: new HttpParams().set('anioId', anioId) });
+  }
+  aplicarAsignacionAulas(anioId: number): Observable<ResultadoAsignacionAulas> {
+    return this.http.post<ResultadoAsignacionAulas>(`${API}/asignacion-aulas`, null, { params: new HttpParams().set('anioId', anioId) });
+  }
+  /** Agrega un aula al pabellón de una falta: el servidor pone el código y sube en uno las aulas declaradas del pabellón. */
+  agregarAulaPabellon(pabellonId: number, capacidad: number): Observable<Aula> {
+    const params = new HttpParams().set('pabellonId', pabellonId).set('capacidad', capacidad);
+    return this.http.post<Aula>(`${API}/asignacion-aulas/agregar-aula`, null, { params });
+  }
+
   // Pabellones
   pabellones(): Observable<Pabellon[]> {
     return this.http.get<Pabellon[]>(`${API}/pabellones`);
@@ -207,6 +223,9 @@ export class PlanificacionService {
   /** Fija cuántos alumnos caben en cada aula del pabellón, todo o nada. */
   fijarCapacidadesPabellon(id: number, aulas: { aulaId: number; capacidad: number }[]): Observable<Aula[]> {
     return this.http.put<Aula[]>(`${API}/pabellones/${id}/capacidades`, { aulas });
+  }
+  fijarGradosPabellon(id: number, gradoIds: number[]): Observable<Pabellon> {
+    return this.http.put<Pabellon>(`${API}/pabellones/${id}/grados`, { gradoIds });
   }
   eliminarPabellon(id: number): Observable<void> {
     return this.http.delete<void>(`${API}/pabellones/${id}`);

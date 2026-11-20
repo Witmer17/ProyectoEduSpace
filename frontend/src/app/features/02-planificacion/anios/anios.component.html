@@ -1,84 +1,128 @@
-<div class="page">
-  <app-page-header titulo="Años y periodos" subtitulo="El año activo es el que usan matrícula, asistencia, notas y cobranza.">@if (puedeEditar()) {
-    <button type="button" class="btn btn-primary" (click)="nuevoAnio()">Nuevo año</button>
-  }</app-page-header>
+<div class="page n-primaria">
+  <app-config-hero
+    titulo="Años y periodos"
+    subtitulo="El año activo es el que rige matrícula, asistencia, notas y cobranza."
+    icono="M4 5h16v15H4zM4 10h16M9 3v4M15 3v4">
+    <a class="btn btn-sm" routerLink="/matriculas/campanias" [queryParams]="anioSel() ? { anioId: anioSel()!.id } : null">Campaña de matrícula</a>
+    @if (puedeEditar()) {
+      <button type="button" class="btn btn-sm btn-primary" (click)="nuevoAnio()">+ Nuevo año</button>
+    }
+  </app-config-hero>
+
   @if (!puedeEditar()) {
     <div class="aviso aviso-warn">Solo el administrador puede modificar esta información; tú puedes consultarla.</div>
   }
 
-  <div class="card">
-    <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr><th>Año</th><th>Inicio</th><th>Fin</th><th>Estado</th><th></th></tr>
-        </thead>
-        <tbody>
-          @for (a of anios(); track a.id) {
-            <tr [style.background]="anioSel()?.id === a.id ? 'var(--primary-soft)' : ''">
-              <td><strong>{{ a.nombre }}</strong></td>
-              <td>{{ a.fechaInicio | date: 'dd/MM/yyyy' }}</td>
-              <td>{{ a.fechaFin | date: 'dd/MM/yyyy' }}</td>
-              <td><span class="badge" [class]="'badge ' + clase(a.estado)">{{ a.estado }}</span></td>
-              <td class="acciones">
-                <button type="button" class="btn btn-sm" (click)="seleccionar(a)">Ver periodos</button>
-                @if (puedeEditar()) {
+  <div class="cfg-dos">
+    <!-- Columna 1: Años académicos -->
+    <section class="cfg-bloque" aria-labelledby="t-anios">
+      <div class="bloque-cab">
+        <div>
+          <h2 id="t-anios">Años académicos</h2>
+          <span class="muted">El año activo es el utilizado por todos los módulos del colegio.</span>
+        </div>
+        <span class="cuenta-anios">{{ anios().length }} {{ anios().length === 1 ? 'año' : 'años' }}</span>
+      </div>
+
+      <div class="lista-anios">
+        @for (a of anios(); track a.id) {
+          <article class="anio-card" [class.seleccionado]="anioSel()?.id === a.id" [class.activo]="a.estado === 'ACTIVO'">
+            <div class="anio-header" (click)="seleccionar(a)">
+              <span class="anio-emblema" [class.activo]="a.estado === 'ACTIVO'" aria-hidden="true">{{ a.nombre.slice(-2) }}</span>
+              <div class="anio-info">
+                <div class="anio-titulo-fila">
+                  <h3 class="anio-nombre">Año {{ a.nombre }}</h3>
+                  <span [class]="'badge ' + clase(a.estado)">{{ a.estado }}</span>
+                </div>
+                <div class="anio-fechas">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <span>{{ a.fechaInicio | date: 'dd/MM/yyyy' }} — {{ a.fechaFin | date: 'dd/MM/yyyy' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="anio-acciones">
+              <button type="button" class="btn btn-sm" [class.btn-activo]="anioSel()?.id === a.id" (click)="seleccionar(a)">
+                {{ anioSel()?.id === a.id ? 'Periodos visibles' : 'Ver periodos' }}
+              </button>
+              <a class="btn btn-sm" routerLink="/matriculas/campanias" [queryParams]="{ anioId: a.id }" title="Campaña de matrícula de este año">Campaña</a>
+              @if (puedeEditar()) {
                 <button type="button" class="btn btn-sm" [disabled]="a.estado === 'CERRADO'" (click)="editarAnio(a)">Editar</button>
                 @if (a.estado === 'PLANIFICADO') {
                   <button type="button" class="btn btn-sm btn-primary" (click)="activarAnio(a)">Activar</button>
                 }
                 @if (a.estado === 'ACTIVO') {
-                  <button type="button" class="btn btn-sm" (click)="cerrarAnio(a)">Cerrar año</button>
+                  <button type="button" class="btn btn-sm" (click)="cerrarAnio(a)">Cerrar</button>
                 }
-                }
-              </td>
-            </tr>
-          } @empty {
-            <tr><td colspan="5" class="vacio">Aún no hay años académicos. Crea el primero.</td></tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  @if (anioSel(); as a) {
-    <app-page-header [titulo]="'Periodos de ' + a.nombre" subtitulo="Bimestres, trimestres o semestres en que se divide el año. Elige el régimen y las fechas se reparten solas.">
-      @if (puedeEditar()) {
-        <button type="button" class="btn" [disabled]="a.estado === 'CERRADO' || !sePuedeRedefinir()" [title]="sePuedeRedefinir() ? '' : 'Hay periodos que ya empezaron: no se pueden rehacer'" (click)="definirPeriodos()">
-          {{ periodos().length ? 'Cambiar régimen' : 'Definir periodos' }}
-        </button>
-        <button type="button" class="btn btn-primary" [disabled]="a.estado === 'CERRADO'" (click)="nuevoPeriodo()">Nuevo periodo</button>
-      }
-    </app-page-header>
-    <div class="card">
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr><th>N.º</th><th>Nombre</th><th>Inicio</th><th>Fin</th><th>Estado</th><th></th></tr>
-          </thead>
-          <tbody>
-            @for (p of periodos(); track p.id) {
-              <tr>
-                <td>{{ p.numero }}</td>
-                <td><strong>{{ p.nombre }}</strong></td>
-                <td>{{ p.fechaInicio | date: 'dd/MM/yyyy' }}</td>
-                <td>{{ p.fechaFin | date: 'dd/MM/yyyy' }}</td>
-                <td><span [class]="'badge ' + clase(p.estado)">{{ p.estado }}</span></td>
-                <td class="acciones">
-                  @if (puedeEditar()) {@if (siguiente(p.estado); as sig) {
-                    <button type="button" class="btn btn-sm" (click)="avanzarPeriodo(p)">{{ sig === 'ACTIVO' ? 'Activar' : 'Cerrar' }}</button>
-                  }
-                  <button type="button" class="btn btn-sm" [disabled]="p.estado === 'CERRADO'" (click)="editarPeriodo(p)">Editar</button>
-                  <button type="button" class="btn btn-sm" [disabled]="p.estado !== 'PLANIFICADO'" (click)="eliminarPeriodo(p)">Eliminar</button>
-                }</td>
-              </tr>
-            } @empty {
-              <tr><td colspan="6" class="vacio">Este año aún no tiene periodos.</td></tr>
-            }
-          </tbody>
-        </table>
+              }
+            </div>
+          </article>
+        } @empty {
+          <div class="vacio">Aún no hay años académicos. Crea el primero con «+ Nuevo año».</div>
+        }
       </div>
-    </div>
-  }
+    </section>
+
+    <!-- Columna 2: Periodos del año seleccionado -->
+    <section class="cfg-bloque" aria-labelledby="t-periodos">
+      @if (anioSel(); as a) {
+        <div class="bloque-cab">
+          <div>
+            <h2 id="t-periodos">Periodos de {{ a.nombre }}</h2>
+            <span class="muted">Bimestres, trimestres o semestres que dividen el ciclo.</span>
+          </div>
+          @if (puedeEditar()) {
+            <div class="cab-botones">
+              <button type="button" class="btn btn-sm" [disabled]="a.estado === 'CERRADO' || !sePuedeRedefinir()"
+                      [title]="sePuedeRedefinir() ? 'Elegir bimestres, trimestres o semestres' : 'Hay periodos que ya empezaron: no se pueden rehacer'"
+                      (click)="definirPeriodos()">
+                {{ periodos().length ? 'Cambiar régimen' : 'Definir periodos' }}
+              </button>
+              <button type="button" class="btn btn-sm btn-primary" [disabled]="a.estado === 'CERRADO'" (click)="nuevoPeriodo()">+ Nuevo</button>
+            </div>
+          }
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th>N.º</th><th>Periodo</th><th>Fechas</th><th>Estado</th><th></th></tr>
+            </thead>
+            <tbody>
+              @for (p of periodos(); track p.id) {
+                <tr>
+                  <td><span class="periodo-num">{{ p.numero }}</span></td>
+                  <td><strong>{{ p.nombre }}</strong></td>
+                  <td class="muted">{{ p.fechaInicio | date: 'dd/MM/yyyy' }} — {{ p.fechaFin | date: 'dd/MM/yyyy' }}</td>
+                  <td><span [class]="'badge ' + clase(p.estado)">{{ p.estado }}</span></td>
+                  <td class="acciones">
+                    @if (puedeEditar()) {
+                      @if (siguiente(p.estado); as sig) {
+                        <button type="button" class="btn btn-sm" (click)="avanzarPeriodo(p)">{{ sig === 'ACTIVO' ? 'Activar' : 'Cerrar' }}</button>
+                      }
+                      <button type="button" class="btn btn-sm" [disabled]="p.estado === 'CERRADO'" (click)="editarPeriodo(p)">Editar</button>
+                      <button type="button" class="btn btn-sm btn-icono btn-borrar" [disabled]="p.estado !== 'PLANIFICADO'" (click)="eliminarPeriodo(p)"
+                              [title]="p.estado === 'PLANIFICADO' ? 'Eliminar el periodo' : 'Solo se elimina un periodo que aún no empieza'"
+                              [attr.aria-label]="'Eliminar ' + p.nombre">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" /></svg>
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="vacio">Este año aún no tiene periodos. Usa «Definir periodos» para crearlos automáticamente.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="vacio-guia">
+          <strong>Ningún año seleccionado</strong>
+          <span>Selecciona un año académico a la izquierda para consultar y administrar sus periodos.</span>
+        </div>
+      }
+    </section>
+  </div>
 </div>
 
 @if (dialogo() === 'anio') {
@@ -98,7 +142,12 @@
           <label for="a-fin">Fin</label>
           <input id="a-fin" type="date" formControlName="fechaFin" />
         </div>
+        <div class="field full">
+          <button type="button" class="atajo-fechas" (click)="fechasHabitualesDelAnio()" title="Empieza el primer lunes de marzo y termina el último viernes hasta el 20 de diciembre">Usar las fechas habituales del año</button>
+          <span class="muted">Empieza el primer lunes de marzo y termina el último viernes hasta el 20 de diciembre. Puedes cambiarlas.</span>
+        </div>
       </div>
+      @for (a of avisosAnio(); track a) { <div class="aviso aviso-warn" style="margin-top: 12px" role="status">{{ a }}</div> }
       @if (errorForm()) { <div class="aviso aviso-danger" style="margin-top: 14px" role="alert">{{ errorForm() }}</div> }
     </form>
     <ng-container footer>
@@ -142,9 +191,19 @@
 }
 
 @if (dialogo() === 'periodo') {
-  <app-modal [titulo]="editando() ? 'Editar periodo' : 'Nuevo periodo'" [ancho]="480" (cerrar)="cerrar()">
+  <app-modal [titulo]="editando() ? 'Editar periodo' : 'Nuevo periodo'" [ancho]="560" (cerrar)="cerrar()">
     <form [formGroup]="formPeriodo" (ngSubmit)="guardarPeriodo()" id="form-periodo" novalidate>
       <div class="form-grid">
+        <div class="field full">
+          <label for="p-anio">Año académico</label>
+          <select id="p-anio" formControlName="anioId" (change)="alCambiarAnioDelPeriodo()">
+            <option [ngValue]="0" disabled>Elige…</option>
+            @for (a of aniosParaPeriodo(); track a.id) { <option [ngValue]="a.id">Año {{ a.nombre }}{{ a.estado === 'ACTIVO' ? ' (activo)' : '' }}</option> }
+          </select>
+          @if (!editando()) { <button type="button" class="crear-anio" (click)="crearAnioDesdePeriodo()">+ Crear un año nuevo</button> }
+          @if (anioDelForm(); as a) { <span class="muted">El año va del {{ fechaCorta(a.fechaInicio) }} al {{ fechaCorta(a.fechaFin) }}.</span> }
+          @if (formPeriodo.controls.anioId.touched && formPeriodo.controls.anioId.invalid) { <span class="error">Elige el año.</span> }
+        </div>
         <div class="field">
           <label for="p-num">Número</label>
           <input id="p-num" type="number" min="1" formControlName="numero" />
@@ -161,7 +220,22 @@
           <label for="p-fin">Fin</label>
           <input id="p-fin" type="date" formControlName="fechaFin" />
         </div>
+        <div class="field full">
+          <span id="p-dur-etq" style="font-weight: 600; font-size: .85rem">Duración rápida (desde el inicio)</span>
+          <div class="atajos-duracion" role="group" aria-labelledby="p-dur-etq">
+            @for (d of duraciones; track d.meses) {
+              <button type="button" class="atajo-d" [class.on]="duracionActiva() === d.meses" [attr.aria-pressed]="duracionActiva() === d.meses" (click)="elegirDuracion(d)">
+                <strong>{{ d.meses }} meses</strong><small>{{ d.singular }}</small>
+              </button>
+            }
+            <button type="button" class="atajo-d" [class.on]="hastaFinDeAnioActivo()" [attr.aria-pressed]="hastaFinDeAnioActivo()" (click)="hastaFinDeAnio()">
+              <strong>Hasta fin de año</strong><small>{{ anioDelForm() ? fechaCorta(anioDelForm()!.fechaFin) : '' }}</small>
+            </button>
+          </div>
+          @if (resumenPeriodo()) { <p class="resumen-periodo" aria-live="polite">{{ resumenPeriodo() }}</p> }
+        </div>
       </div>
+      @for (a of avisosPeriodo(); track a) { <div class="aviso aviso-warn" style="margin-top: 12px" role="status">{{ a }}</div> }
       @if (errorForm()) { <div class="aviso aviso-danger" style="margin-top: 14px" role="alert">{{ errorForm() }}</div> }
     </form>
     <ng-container footer>

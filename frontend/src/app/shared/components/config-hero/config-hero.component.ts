@@ -20,6 +20,7 @@ import { Component, input } from '@angular/core';
     </header>
   `,
   styles: `
+    :host { display: block; }
     .hero {
       position: relative; overflow: hidden; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 20px 24px; color: #fff;
       border-radius: 24px; background: linear-gradient(120deg, var(--nivel, #1d4ed8), var(--nivel-2, #38bdf8));

@@ -15,15 +15,15 @@ export const routes: Routes = [
   // Sitio público del colegio: no exige sesión.
   {
     path: '',
-    loadComponent: () => import('./features/11-portal-publico/publico-layout.component').then(m => m.PublicoLayoutComponent),
+    loadComponent: () => import('./features/publico/publico-layout.component').then(m => m.PublicoLayoutComponent),
     children: [
-      { path: '', pathMatch: 'full', title: 'Colegio Horizonte del Valle', loadComponent: () => import('./features/11-portal-publico/inicio/inicio-publico.component').then(m => m.InicioPublicoComponent) },
-      { path: 'nosotros', title: 'Nosotros · Horizonte del Valle', loadComponent: () => import('./features/11-portal-publico/nosotros/nosotros.component').then(m => m.NosotrosComponent) },
-      { path: 'niveles', title: 'Niveles · Horizonte del Valle', loadComponent: () => import('./features/11-portal-publico/niveles/niveles-publico.component').then(m => m.NivelesPublicoComponent) },
-      { path: 'admision', title: 'Admisión · Horizonte del Valle', loadComponent: () => import('./features/11-portal-publico/admision/admision.component').then(m => m.AdmisionComponent) },
-      { path: 'matricula-en-linea', title: 'Matrícula en línea · Horizonte del Valle', loadComponent: () => import('./features/11-portal-publico/matricula-en-linea/matricula-en-linea.component').then(m => m.MatriculaEnLineaComponent) },
-      { path: 'noticias', title: 'Noticias · Horizonte del Valle', loadComponent: () => import('./features/11-portal-publico/noticias/noticias.component').then(m => m.NoticiasComponent) },
-      { path: 'contacto', title: 'Contacto · Horizonte del Valle', loadComponent: () => import('./features/11-portal-publico/contacto/contacto.component').then(m => m.ContactoComponent) }
+      { path: '', pathMatch: 'full', title: 'Colegio Horizonte del Valle', loadComponent: () => import('./features/publico/inicio-publico.component').then(m => m.InicioPublicoComponent) },
+      { path: 'nosotros', title: 'Nosotros · Horizonte del Valle', loadComponent: () => import('./features/publico/nosotros.component').then(m => m.NosotrosComponent) },
+      { path: 'niveles', title: 'Niveles · Horizonte del Valle', loadComponent: () => import('./features/publico/niveles-publico.component').then(m => m.NivelesPublicoComponent) },
+      { path: 'admision', title: 'Admisión · Horizonte del Valle', loadComponent: () => import('./features/publico/admision.component').then(m => m.AdmisionComponent) },
+      { path: 'matricula-en-linea', title: 'Matrícula en línea · Horizonte del Valle', loadComponent: () => import('./features/publico/matricula-en-linea.component').then(m => m.MatriculaEnLineaComponent) },
+      { path: 'noticias', title: 'Noticias · Horizonte del Valle', loadComponent: () => import('./features/publico/noticias.component').then(m => m.NoticiasComponent) },
+      { path: 'contacto', title: 'Contacto · Horizonte del Valle', loadComponent: () => import('./features/publico/contacto.component').then(m => m.ContactoComponent) }
     ]
   },
   {
@@ -45,18 +45,18 @@ export const routes: Routes = [
       { path: 'portal', pathMatch: 'full', redirectTo: () => rutaInicial(inject(AuthService).roles()) },
       {
         path: 'calendario',
-        loadComponent: () => import('./features/12-comun/calendario/calendario.component').then(m => m.CalendarioComponent)
+        loadComponent: () => import('./features/calendario/calendario.component').then(m => m.CalendarioComponent)
       },
       {
         path: 'ayuda',
-        loadComponent: () => import('./features/12-comun/ayuda/ayuda.component').then(m => m.AyudaComponent)
+        loadComponent: () => import('./features/ayuda/ayuda.component').then(m => m.AyudaComponent)
       },
       // Lo propio de quien trabaja en el colegio: su contrato, asistencia, pagos y cuenta de depósito (solo lectura).
       {
         path: 'mi-trabajo',
         canActivate: [roleGuard],
         data: { roles: ['DOCENTE', 'CAJERO'] },
-        loadComponent: () => import('./features/12-comun/mi-trabajo/mi-trabajo.component').then(m => m.MiTrabajoComponent)
+        loadComponent: () => import('./features/mi-trabajo/mi-trabajo.component').then(m => m.MiTrabajoComponent)
       },
       {
         path: 'mi-perfil',
@@ -66,19 +66,19 @@ export const routes: Routes = [
         path: 'finanzas',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/08-caja-pagos/finanzas-dashboard/finanzas.component').then(m => m.FinanzasComponent)
+        loadComponent: () => import('./features/finanzas/finanzas.component').then(m => m.FinanzasComponent)
       },
       {
         path: 'docente/alumnos',
         canActivate: [roleGuard],
         data: { roles: DOCENTE },
-        loadComponent: () => import('./features/12-comun/dashboard/docente/alumnos/docente-alumnos.component').then(m => m.DocenteAlumnosComponent)
+        loadComponent: () => import('./features/docente/alumnos/docente-alumnos.component').then(m => m.DocenteAlumnosComponent)
       },
       {
         path: 'familia/boletines',
         canActivate: [roleGuard],
         data: { roles: FAMILIA },
-        loadComponent: () => import('./features/10-calificaciones/familia-notas/boletines/familia-boletines.component').then(m => m.FamiliaBoletinesComponent)
+        loadComponent: () => import('./features/familia/boletines/familia-boletines.component').then(m => m.FamiliaBoletinesComponent)
       },
       {
         path: 'notificaciones',
@@ -94,7 +94,7 @@ export const routes: Routes = [
         path: 'inicio',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/12-comun/dashboard/dashboard.component').then(m => m.DashboardComponent)
+        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
       },
       {
         path: 'usuarios',
@@ -106,13 +106,25 @@ export const routes: Routes = [
         path: 'cuentas',
         canActivate: [roleGuard],
         data: { roles: SOLO_ADMIN },
-        loadComponent: () => import('./features/08-caja-pagos/cuentas-alumnos/cuentas.component').then(m => m.CuentasComponent)
+        loadComponent: () => import('./features/cuentas/cuentas.component').then(m => m.CuentasComponent)
       },
       {
         path: 'alumnos',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
         loadComponent: () => import('./features/03-alumnos/lista-alumnos/alumnos.component').then(m => m.AlumnosComponent)
+      },
+      {
+        path: 'documentos',
+        canActivate: [roleGuard],
+        data: { roles: PERSONAL },
+        loadComponent: () => import('./features/documentos/documentos.component').then(m => m.DocumentosComponent)
+      },
+      {
+        path: 'apoderados',
+        canActivate: [roleGuard],
+        data: { roles: PERSONAL },
+        loadComponent: () => import('./features/03-alumnos/apoderados/apoderados.component').then(m => m.ApoderadosComponent)
       },
       {
         path: 'alumnos/importar',
@@ -124,37 +136,37 @@ export const routes: Routes = [
         path: 'asistencia/justificaciones',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/05-asistencia/justificaciones/justificaciones.component').then(m => m.JustificacionesComponent)
+        loadComponent: () => import('./features/asistencia/justificaciones/justificaciones.component').then(m => m.JustificacionesComponent)
       },
       {
         path: 'asistencia/reporte',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/05-asistencia/reporte-asistencia/reporte.component').then(m => m.ReporteAsistenciaComponent)
+        loadComponent: () => import('./features/asistencia/reporte/reporte.component').then(m => m.ReporteAsistenciaComponent)
       },
       {
         path: 'calificaciones/cierre',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/10-calificaciones/cierre-periodo/cierre.component').then(m => m.CierrePeriodoComponent)
+        loadComponent: () => import('./features/calificaciones/cierre/cierre.component').then(m => m.CierrePeriodoComponent)
       },
       {
         path: 'calificaciones/boletines',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/10-calificaciones/boletines/boletines.component').then(m => m.BoletinesComponent)
+        loadComponent: () => import('./features/calificaciones/boletines/boletines.component').then(m => m.BoletinesComponent)
       },
       {
         path: 'pagos/cuentas',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/08-caja-pagos/cuentas-alumnos/cuentas.component').then(m => m.CuentasComponent)
+        loadComponent: () => import('./features/pagos/cuentas/cuentas.component').then(m => m.CuentasComponent)
       },
       {
         path: 'pagos/cobranza',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/08-caja-pagos/cobranza-morosos/cobranza.component').then(m => m.CobranzaComponent)
+        loadComponent: () => import('./features/pagos/cobranza/cobranza.component').then(m => m.CobranzaComponent)
       },
       {
         path: 'alumnos/:id',
@@ -166,157 +178,194 @@ export const routes: Routes = [
         path: 'matriculas',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/04-matriculas/matriculas/matriculas.component').then(m => m.MatriculasComponent)
+        loadComponent: () => import('./features/matriculas/matriculas.component').then(m => m.MatriculasComponent)
       },
       {
         path: 'matriculas/aprobaciones',
         canActivate: [roleGuard],
-        data: { roles: SOLO_ADMIN },
-        loadComponent: () => import('./features/04-matriculas/aprobaciones/aprobaciones.component').then(m => m.AprobacionesComponent)
+        data: { roles: PERSONAL },
+        loadComponent: () => import('./features/matriculas/aprobaciones.component').then(m => m.AprobacionesComponent)
       },
       {
         path: 'matriculas/campanias',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/04-matriculas/campanias/campanias.component').then(m => m.CampaniasComponent)
+        loadComponent: () => import('./features/matriculas/campanias.component').then(m => m.CampaniasComponent)
       },
       {
         path: 'matriculas/cupos',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/04-matriculas/cupos/cupos.component').then(m => m.CuposComponent)
+        loadComponent: () => import('./features/matriculas/cupos.component').then(m => m.CuposComponent)
       },
       {
         path: 'docente/inicio',
         canActivate: [roleGuard],
         data: { roles: DOCENTE },
-        loadComponent: () => import('./features/12-comun/dashboard/docente/inicio/docente-inicio.component').then(m => m.DocenteInicioComponent)
+        loadComponent: () => import('./features/docente/inicio/docente-inicio.component').then(m => m.DocenteInicioComponent)
       },
       {
         path: 'docente/curso/:seccionId/:cursoId',
         canActivate: [roleGuard],
         data: { roles: DOCENTE },
-        loadComponent: () => import('./features/12-comun/dashboard/docente/curso/docente-curso.component').then(m => m.DocenteCursoComponent)
+        loadComponent: () => import('./features/docente/curso/docente-curso.component').then(m => m.DocenteCursoComponent)
       },
       {
         path: 'docente/horario',
         canActivate: [roleGuard],
         data: { roles: DOCENTE },
-        loadComponent: () => import('./features/12-comun/dashboard/docente/horario/docente-horario.component').then(m => m.DocenteHorarioComponent)
+        loadComponent: () => import('./features/docente/horario/docente-horario.component').then(m => m.DocenteHorarioComponent)
       },
       {
         path: 'docente/asistencia',
         canActivate: [roleGuard],
         data: { roles: DOCENTE },
-        loadComponent: () => import('./features/05-asistencia/docente-asistencia/docente-asistencia.component').then(m => m.DocenteAsistenciaComponent)
+        loadComponent: () => import('./features/docente/asistencia/docente-asistencia.component').then(m => m.DocenteAsistenciaComponent)
       },
       {
         path: 'docente/tareas',
         canActivate: [roleGuard],
         data: { roles: DOCENTE },
-        loadComponent: () => import('./features/06-tareas/docente-tareas/docente-tareas.component').then(m => m.DocenteTareasComponent)
+        loadComponent: () => import('./features/docente/tareas/docente-tareas.component').then(m => m.DocenteTareasComponent)
       },
       {
         path: 'docente/tareas/:id',
         canActivate: [roleGuard],
         data: { roles: DOCENTE },
-        loadComponent: () => import('./features/06-tareas/tarea-entregas/tarea-entregas.component').then(m => m.TareaEntregasComponent)
+        loadComponent: () => import('./features/docente/tareas/tarea-entregas.component').then(m => m.TareaEntregasComponent)
       },
       {
         path: 'docente/examenes',
         canActivate: [roleGuard],
         data: { roles: DOCENTE },
-        loadComponent: () => import('./features/09-examenes/docente-examenes/docente-examenes.component').then(m => m.DocenteExamenesComponent)
+        loadComponent: () => import('./features/docente/examenes/docente-examenes.component').then(m => m.DocenteExamenesComponent)
       },
       {
         path: 'docente/banco',
         canActivate: [roleGuard],
         data: { roles: DOCENTE },
-        loadComponent: () => import('./features/09-examenes/banco-preguntas/docente-banco.component').then(m => m.DocenteBancoComponent)
+        loadComponent: () => import('./features/docente/examenes/docente-banco.component').then(m => m.DocenteBancoComponent)
       },
       {
         path: 'docente/notas',
         canActivate: [roleGuard],
         data: { roles: DOCENTE },
-        loadComponent: () => import('./features/10-calificaciones/docente-notas/docente-notas.component').then(m => m.DocenteNotasComponent)
+        loadComponent: () => import('./features/docente/notas/docente-notas.component').then(m => m.DocenteNotasComponent)
       },
       {
         path: 'familia/inicio',
         canActivate: [roleGuard],
         data: { roles: FAMILIA },
-        loadComponent: () => import('./features/12-comun/dashboard/familia/cursos/familia-cursos.component').then(m => m.FamiliaCursosComponent)
+        loadComponent: () => import('./features/familia/cursos/familia-cursos.component').then(m => m.FamiliaCursosComponent)
       },
       {
         path: 'familia/curso/:cursoId',
         canActivate: [roleGuard],
         data: { roles: FAMILIA },
-        loadComponent: () => import('./features/12-comun/dashboard/familia/cursos/familia-curso.component').then(m => m.FamiliaCursoComponent)
+        loadComponent: () => import('./features/familia/cursos/familia-curso.component').then(m => m.FamiliaCursoComponent)
       },
       {
         path: 'familia/asistencia',
         canActivate: [roleGuard],
         data: { roles: FAMILIA },
-        loadComponent: () => import('./features/05-asistencia/familia-asistencia/familia-asistencia.component').then(m => m.FamiliaAsistenciaComponent)
+        loadComponent: () => import('./features/familia/asistencia/familia-asistencia.component').then(m => m.FamiliaAsistenciaComponent)
       },
       {
         path: 'familia/notas',
         canActivate: [roleGuard],
         data: { roles: FAMILIA },
-        loadComponent: () => import('./features/10-calificaciones/familia-notas/notas/familia-notas.component').then(m => m.FamiliaNotasComponent)
+        loadComponent: () => import('./features/familia/notas/familia-notas.component').then(m => m.FamiliaNotasComponent)
       },
       {
         path: 'familia/horario',
         canActivate: [roleGuard],
         data: { roles: FAMILIA },
-        loadComponent: () => import('./features/12-comun/dashboard/familia/horario/familia-horario.component').then(m => m.FamiliaHorarioComponent)
+        loadComponent: () => import('./features/familia/horario/familia-horario.component').then(m => m.FamiliaHorarioComponent)
       },
       {
         path: 'familia/tareas',
         canActivate: [roleGuard],
         data: { roles: FAMILIA },
-        loadComponent: () => import('./features/06-tareas/familia-tareas/familia-tareas.component').then(m => m.FamiliaTareasComponent)
+        loadComponent: () => import('./features/familia/tareas/familia-tareas.component').then(m => m.FamiliaTareasComponent)
       },
       {
         path: 'familia/examenes',
         canActivate: [roleGuard],
         data: { roles: FAMILIA },
-        loadComponent: () => import('./features/09-examenes/familia-examenes/familia-examenes.component').then(m => m.FamiliaExamenesComponent)
+        loadComponent: () => import('./features/familia/examenes/familia-examenes.component').then(m => m.FamiliaExamenesComponent)
       },
       {
         path: 'familia/examenes/:id/rendir',
         canActivate: [roleGuard],
         data: { roles: FAMILIA },
-        loadComponent: () => import('./features/09-examenes/rendir-examen/rendir-examen.component').then(m => m.RendirExamenComponent)
+        loadComponent: () => import('./features/familia/examenes/rendir-examen.component').then(m => m.RendirExamenComponent)
       },
       {
         path: 'familia/pagos',
         canActivate: [roleGuard],
         data: { roles: ['APODERADO'] },
-        loadComponent: () => import('./features/08-caja-pagos/familia-pagos/familia-pagos.component').then(m => m.FamiliaPagosComponent)
+        loadComponent: () => import('./features/familia/pagos/familia-pagos.component').then(m => m.FamiliaPagosComponent)
       },
+      {
+        path: 'secretaria',
+        canActivate: [roleGuard],
+        data: { roles: ['SECRETARIA'] },
+        loadComponent: () => import('./features/secretaria/secretaria-inicio.component').then(m => m.SecretariaInicioComponent)
+      },
+      {
+        path: 'matricula/asistente',
+        canActivate: [roleGuard],
+        data: { roles: PERSONAL },
+        loadComponent: () => import('./features/matriculas/asistente-matricula.component').then(m => m.AsistenteMatriculaComponent)
+      },
+      // Caja (barra horizontal): Inicio = ventanilla de cobro; Alumnos = cuentas, morosos y cobranza; Personal = pago al personal.
       {
         path: 'caja',
         canActivate: [roleGuard],
-        data: { roles: ['CAJERO'] },
-        loadComponent: () => import('./features/08-caja-pagos/ventanilla-caja/caja.component').then(m => m.CajaComponent)
+        data: { roles: ['CAJERO', 'ADMIN'] },
+        loadComponent: () => import('./features/caja/caja.component').then(m => m.CajaComponent)
+      },
+      {
+        path: 'caja/alumnos',
+        canActivate: [roleGuard],
+        data: { roles: ['CAJERO', 'ADMIN'] },
+        loadComponent: () => import('./features/pagos/cuentas/cuentas.component').then(m => m.CuentasComponent)
+      },
+      {
+        path: 'caja/alumnos/morosos',
+        canActivate: [roleGuard],
+        data: { roles: ['CAJERO', 'ADMIN'] },
+        loadComponent: () => import('./features/pagos/morosos/morosos.component').then(m => m.MorososComponent)
+      },
+      {
+        path: 'caja/alumnos/cobranza',
+        canActivate: [roleGuard],
+        data: { roles: ['CAJERO', 'ADMIN'] },
+        loadComponent: () => import('./features/pagos/cobranza/cobranza.component').then(m => m.CobranzaComponent)
+      },
+      {
+        path: 'caja/personal',
+        canActivate: [roleGuard],
+        data: { roles: ['CAJERO', 'ADMIN'] },
+        loadComponent: () => import('./features/caja/caja-personal.component').then(m => m.CajaPersonalComponent)
       },
       {
         path: 'planificacion/panel',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/02-planificacion/aulas/panel/panel-aulas.component').then(m => m.PanelAulasComponent)
+        loadComponent: () => import('./features/02-planificacion/panel/panel-aulas.component').then(m => m.PanelAulasComponent)
       },
       {
         path: 'planificacion/cursos-docentes',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/02-planificacion/aulas/panel/panel-cursos.component').then(m => m.PanelCursosComponent)
+        loadComponent: () => import('./features/02-planificacion/panel/panel-cursos.component').then(m => m.PanelCursosComponent)
       },
       {
         path: 'planificacion/aulas-disponibles',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/02-planificacion/aulas/aulas-disponibles/aulas-disponibles.component').then(m => m.AulasDisponiblesComponent)
+        loadComponent: () => import('./features/02-planificacion/aulas-disponibles/aulas-disponibles.component').then(m => m.AulasDisponiblesComponent)
       },
       {
         path: 'configuracion',
@@ -355,6 +404,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/02-planificacion/configuracion/areas/areas-config.component').then(m => m.AreasConfigComponent)
       },
       {
+        path: 'configuracion/horarios',
+        canActivate: [roleGuard],
+        data: { roles: PERSONAL },
+        loadComponent: () => import('./features/02-planificacion/configuracion/horarios/horarios-docente.component').then(m => m.HorariosDocenteComponent)
+      },
+      {
         path: 'configuracion/estructura',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
@@ -376,13 +431,13 @@ export const routes: Routes = [
         path: 'planificacion/asignaciones',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/02-planificacion/horarios/asignaciones/asignaciones.component').then(m => m.AsignacionesComponent)
+        loadComponent: () => import('./features/02-planificacion/asignaciones/asignaciones.component').then(m => m.AsignacionesComponent)
       },
       {
         path: 'planificacion/bloques',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/02-planificacion/horarios/bloques/bloques.component').then(m => m.BloquesComponent)
+        loadComponent: () => import('./features/02-planificacion/bloques/bloques.component').then(m => m.BloquesComponent)
       },
       {
         path: 'planificacion/horarios-auto',
@@ -426,31 +481,31 @@ export const routes: Routes = [
         path: 'areas',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/12-comun/secretaria/areas/areas-panel.component').then(m => m.AreasPanelComponent)
+        loadComponent: () => import('./features/areas/areas-panel.component').then(m => m.AreasPanelComponent)
       },
       {
         path: 'areas/:codigo',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/12-comun/secretaria/areas/area-pagina.component').then(m => m.AreaPaginaComponent)
+        loadComponent: () => import('./features/areas/area-pagina.component').then(m => m.AreaPaginaComponent)
       },
       {
         path: 'personal/asistencia',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/05-asistencia/personal-asistencia/asistencia-personal.component').then(m => m.AsistenciaPersonalComponent)
+        loadComponent: () => import('./features/personal/asistencia-personal.component').then(m => m.AsistenciaPersonalComponent)
       },
       {
         path: 'personal/pagos',
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] },
-        loadComponent: () => import('./features/12-comun/personal/pago-personal.component').then(m => m.PagoPersonalComponent)
+        loadComponent: () => import('./features/personal/pago-personal.component').then(m => m.PagoPersonalComponent)
       },
       {
         path: 'personal',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/12-comun/personal/personal.component').then(m => m.PersonalComponent)
+        loadComponent: () => import('./features/personal/personal.component').then(m => m.PersonalComponent)
       },
       {
         path: 'planificacion/aulas',
@@ -462,25 +517,25 @@ export const routes: Routes = [
         path: 'pagos/conceptos',
         canActivate: [roleGuard],
         data: { roles: SOLO_ADMIN },
-        loadComponent: () => import('./features/08-caja-pagos/conceptos/conceptos.component').then(m => m.ConceptosComponent)
+        loadComponent: () => import('./features/pagos/conceptos/conceptos.component').then(m => m.ConceptosComponent)
       },
       {
         path: 'pagos/tarifas',
         canActivate: [roleGuard],
         data: { roles: SOLO_ADMIN },
-        loadComponent: () => import('./features/08-caja-pagos/tarifas/tarifas.component').then(m => m.TarifasComponent)
+        loadComponent: () => import('./features/pagos/tarifas/tarifas.component').then(m => m.TarifasComponent)
       },
       {
         path: 'pagos/descuentos',
         canActivate: [roleGuard],
         data: { roles: SOLO_ADMIN },
-        loadComponent: () => import('./features/08-caja-pagos/descuentos/descuentos.component').then(m => m.DescuentosComponent)
+        loadComponent: () => import('./features/pagos/descuentos/descuentos.component').then(m => m.DescuentosComponent)
       },
       {
         path: 'pagos/morosos',
         canActivate: [roleGuard],
         data: { roles: PERSONAL },
-        loadComponent: () => import('./features/08-caja-pagos/cobranza-morosos/morosos.component').then(m => m.MorososComponent)
+        loadComponent: () => import('./features/pagos/morosos/morosos.component').then(m => m.MorososComponent)
       }
     ]
   },

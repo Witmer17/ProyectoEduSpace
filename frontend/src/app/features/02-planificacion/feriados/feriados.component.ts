@@ -7,13 +7,18 @@ import { ConfirmService } from '../../../core/services/confirm.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PlanificacionService } from '../../../core/services/planificacion.service';
 import { mensajeError } from '../../../core/utils/errores';
+import { ConfigHeroComponent } from '../../../shared/components/config-hero/config-hero.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   selector: 'app-feriados',
-  imports: [ReactiveFormsModule, DatePipe, ModalComponent, PageHeaderComponent],
-  templateUrl: './feriados.component.html'
+  imports: [ReactiveFormsModule, DatePipe, ModalComponent, ConfigHeroComponent],
+  templateUrl: './feriados.component.html',
+  styles: `
+    .btn-icono { display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; vertical-align: middle; }
+    .btn-icono svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .btn-borrar:not(:disabled):hover { color: var(--danger, #c0392b); border-color: var(--danger, #c0392b); }
+  `
 })
 export class FeriadosComponent implements OnInit {
   private readonly api = inject(PlanificacionService);
@@ -41,7 +46,7 @@ export class FeriadosComponent implements OnInit {
   ngOnInit(): void {
     this.api.anios().subscribe(a => {
       this.anios.set(a);
-      this.anioId.setValue((a.find(x => x.estado === 'ACTIVO') ?? a[0])?.id ?? 0);
+      this.anioId.setValue(a.find(x => x.estado === 'ACTIVO')?.id ?? 0);
       this.cargar();
     });
   }

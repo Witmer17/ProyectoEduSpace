@@ -1,39 +1,118 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
 .pagina {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-  position: relative;
+  padding: 32px 16px;
+  background: radial-gradient(1200px 600px at 85% -10%, var(--primary-soft, #eff6ff), transparent 70%),
+              radial-gradient(800px 400px at 15% 100%, #fef3c7, transparent 60%),
+              var(--bg, #f8fafc);
 }
-.pagina::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 24px 24px;
-  pointer-events: none;
-}
+
 .panel {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 420px;
-  background: #ffffff;
-  border: 1px solid var(--line);
+  width: min(440px, 100%);
+  background: var(--card, #ffffff);
+  border: 1px solid var(--line, #e2e8f0);
   border-radius: 20px;
   padding: 36px 32px;
+  box-shadow: 0 20px 45px -15px rgba(20, 33, 61, 0.12), 0 0 0 1px rgba(20, 33, 61, 0.02);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.logo-escudo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary, #1e40af), #7c3aed);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+}
+
+.nombre {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--ink, #0f172a);
+}
+
+.sub-marca {
+  color: #f59e0b;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: block;
+  margin-top: 2px;
+}
+
+h1 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ink, #0f172a);
+  letter-spacing: -0.01em;
+}
+
+p.muted {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  color: var(--ink-2, #475569);
+}
+
+form {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
-  border-top: 4px solid var(--primary);
+  gap: 16px;
+  margin-top: 16px;
 }
-.marca { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-.logo-escudo { width: 44px; height: 44px; object-fit: contain; }
-.nombre { font-weight: 800; font-size: 20px; color: var(--primary); }
-.sub-marca { color: var(--warn); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 2px; }
-form { display: flex; flex-direction: column; gap: 16px; margin-top: 14px; }
-.entrar { width: 100%; }
-.ayuda-ingreso { margin-top: 18px; font-size: .85rem; line-height: 1.45; }
+
+.entrar {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 6px;
+  font-size: 14.5px;
+  font-weight: 700;
+  border-radius: 10px;
+}
+
+.ayuda-ingreso {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line, #e2e8f0);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-2, #475569);
+}
+
+.ayuda-ingreso code {
+  background: var(--bg, #f8fafc);
+  border: 1px solid var(--line, #e2e8f0);
+  padding: 2px 5px;
+  border-radius: 5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  color: var(--ink, #0f172a);
+}
