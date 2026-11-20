@@ -54,8 +54,16 @@ public class MercadoPagoController {
                     paymentId = Long.valueOf(dataMap.get("id").toString());
                 } catch (NumberFormatException ignored) {}
             }
+            if (paymentId == null && body.get("id") != null) {
+                try {
+                    paymentId = Long.valueOf(body.get("id").toString());
+                } catch (NumberFormatException ignored) {}
+            }
             if (effectiveTopic == null && body.get("type") != null) {
                 effectiveTopic = body.get("type").toString();
+            }
+            if (effectiveTopic == null && body.get("action") != null) {
+                effectiveTopic = body.get("action").toString();
             }
         }
 
