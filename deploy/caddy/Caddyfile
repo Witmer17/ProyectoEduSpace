@@ -1,0 +1,36 @@
+:80 {
+    log {
+        output stdout
+        format console
+    }
+
+    # Webhook de Mercado Pago y APIs del Gateway
+    handle /api/* {
+        reverse_proxy eduspace-gateway:18080 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Keycloak IAM (con strip de prefijo /kc)
+    handle_path /kc/* {
+        reverse_proxy eduspace-keycloak:8080 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Frontend Angular SPA
+    handle {
+        reverse_proxy frontend:80 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+}

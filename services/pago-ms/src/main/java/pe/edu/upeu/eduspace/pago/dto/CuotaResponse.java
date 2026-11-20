@@ -5,7 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-
+//formulario para el inicio de pago en linea mercado pago
 @Data
 @Builder
 public class CuotaResponse {

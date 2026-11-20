@@ -78,11 +78,15 @@
       "rootUrl": "http://localhost:4200",
       "redirectUris": [
         "http://localhost:4200/*",
-        "http://127.0.0.1:4200/*"
+        "http://127.0.0.1:4200/*",
+        "http://20.197.193.121/*",
+        "http://20.197.193.121:*"
       ],
       "webOrigins": [
         "http://localhost:4200",
-        "http://127.0.0.1:4200"
+        "http://127.0.0.1:4200",
+        "http://20.197.193.121",
+        "*"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
@@ -160,8 +164,15 @@
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": false,
       "rootUrl": "http://localhost:4200",
-      "redirectUris": [],
-      "webOrigins": [],
+      "redirectUris": [
+        "http://localhost:4200/*",
+        "http://127.0.0.1:4200/*",
+        "http://20.197.193.121/*",
+        "http://20.197.193.121:*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "http://localhost:4200/*##http://127.0.0.1:4200/*"
@@ -202,20 +213,102 @@
       "enabled": true,
       "emailVerified": true,
       "attributes": {
-        "usuarioId": [
-          "1"
-        ]
+        "usuarioId": ["1"]
       },
       "credentials": [
-        {
-          "type": "password",
-          "value": "admin123",
-          "temporary": false
-        }
+        { "type": "password", "value": "admin123", "temporary": false }
       ],
-      "realmRoles": [
-        "ADMIN"
-      ]
+      "realmRoles": ["ADMIN"]
+    },
+    {
+      "username": "secretaria",
+      "email": "secretaria@eduspace.com",
+      "firstName": "Ana",
+      "lastName": "Torres",
+      "enabled": true,
+      "emailVerified": true,
+      "attributes": {
+        "usuarioId": ["2"]
+      },
+      "credentials": [
+        { "type": "password", "value": "secre123", "temporary": false }
+      ],
+      "realmRoles": ["SECRETARIA"]
+    },
+    {
+      "username": "cajero",
+      "email": "cajero@eduspace.com",
+      "firstName": "Carlos",
+      "lastName": "Mendoza",
+      "enabled": true,
+      "emailVerified": true,
+      "attributes": {
+        "usuarioId": ["3"]
+      },
+      "credentials": [
+        { "type": "password", "value": "cajero123", "temporary": false }
+      ],
+      "realmRoles": ["CAJERO"]
+    },
+    {
+      "username": "docente",
+      "email": "docente@eduspace.test",
+      "firstName": "Manuel",
+      "lastName": "Pérez",
+      "enabled": true,
+      "emailVerified": true,
+      "attributes": {
+        "usuarioId": ["4"]
+      },
+      "credentials": [
+        { "type": "password", "value": "docente123", "temporary": false }
+      ],
+      "realmRoles": ["DOCENTE"]
+    },
+    {
+      "username": "apoderado",
+      "email": "apoderado@eduspace.test",
+      "firstName": "Carmen",
+      "lastName": "García",
+      "enabled": true,
+      "emailVerified": true,
+      "attributes": {
+        "usuarioId": ["5"]
+      },
+      "credentials": [
+        { "type": "password", "value": "admin123", "temporary": false }
+      ],
+      "realmRoles": ["APODERADO"]
+    },
+    {
+      "username": "alumno",
+      "email": "alumno@eduspace.test",
+      "firstName": "Lucía",
+      "lastName": "Mendoza",
+      "enabled": true,
+      "emailVerified": true,
+      "attributes": {
+        "usuarioId": ["6"]
+      },
+      "credentials": [
+        { "type": "password", "value": "alumno123", "temporary": false }
+      ],
+      "realmRoles": ["ALUMNO"]
+    },
+    {
+      "username": "jorge.vargas",
+      "email": "jvargas@ejemplo.com",
+      "firstName": "Jorge",
+      "lastName": "Vargas",
+      "enabled": true,
+      "emailVerified": true,
+      "attributes": {
+        "usuarioId": ["8"]
+      },
+      "credentials": [
+        { "type": "password", "value": "admin123", "temporary": false }
+      ],
+      "realmRoles": ["APODERADO"]
     }
   ]
 }

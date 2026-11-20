@@ -13,10 +13,15 @@ import java.util.Optional;
 @Repository
 public interface SerieComprobanteRepository extends JpaRepository<SerieComprobante, Long> {
 
+
+    ///busca el toletario disponible 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM SerieComprobante s WHERE s.tipo = :tipo AND s.activa = true ORDER BY s.id ASC LIMIT 1")
     Optional<SerieComprobante> findFirstByTipoActivaForUpdate(@Param("tipo") String tipo);
 
+
+
+    ///busca y bloquea un talonario
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM SerieComprobante s WHERE s.tipo = :tipo AND s.serie = :serie")
     Optional<SerieComprobante> findByTipoAndSerieForUpdate(@Param("tipo") String tipo, @Param("serie") String serie);

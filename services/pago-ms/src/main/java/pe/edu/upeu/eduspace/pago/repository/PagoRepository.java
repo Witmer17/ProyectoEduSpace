@@ -16,22 +16,28 @@ import java.util.Optional;
 @Repository
 public interface PagoRepository extends JpaRepository<Pago, Long> {
 
+  //busca si ya existe el cobro
     Optional<Pago> findByIdempotencyKey(String idempotencyKey);
 
+    //trae pagos de estudiante
     List<Pago> findByAlumnoIdOrderByPagadoEnDesc(Long alumnoId);
 
+    //busca los cobros
     List<Pago> findByCajaSesionId(Long cajaSesionId);
 
-    /** Todo lo cobrado y no anulado: el dinero que entró a caja. */
+    //todo lo cobrado y no anulado: el dinero que entró a caja
     @Query("SELECT COALESCE(SUM(p.montoTotal), 0) FROM Pago p WHERE p.estado = 'CONFIRMADO'")
     BigDecimal totalCobrado();
 
     @Query("SELECT COALESCE(SUM(p.montoTotal), 0) FROM Pago p WHERE p.cajaSesion.id = :cajaId AND p.estado = 'CONFIRMADO'")
     BigDecimal sumTotalByCajaSesionId(@Param("cajaId") Long cajaId);
 
+
+    //suma dinero efectivo solo eso
     @Query("SELECT COALESCE(SUM(p.montoTotal), 0) FROM Pago p WHERE p.cajaSesion.id = :cajaId AND p.medio = 'EFECTIVO' AND p.estado = 'CONFIRMADO'")
     BigDecimal sumEfectivoByCajaSesionId(@Param("cajaId") Long cajaId);
 
+    //genera el reporte oficial 
     @Query("""
         SELECT p FROM Pago p
         WHERE p.pagadoEn BETWEEN :desde AND :hasta

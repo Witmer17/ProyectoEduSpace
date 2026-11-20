@@ -45,6 +45,8 @@ public class MatriculaLocal {
     @Column(name = "responsable_nombre", length = 220)
     private String responsableNombre;
 
+
+    // evento de cuanto se iso la ultima actualizacion del estudiante
     @Column(name = "actualizado_en", nullable = false)
     @Builder.Default
     private LocalDateTime actualizadoEn = LocalDateTime.now();

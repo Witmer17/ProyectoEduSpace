@@ -1,0 +1,573 @@
+name: eduspace-prod
+
+networks:
+  eduspace-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  kafka_data:
+  caddy_data:
+  caddy_config:
+
+services:
+  # ============================================================================
+  # 1. Base de Datos Compartida (Multi-database en una sola instancia)
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: eduspace-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: eduspace
+      POSTGRES_USER: ${DB_USER:-eduspace}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-eduspace}
+      TZ: America/Lima
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./deploy/postgres/01-init-dbs.sh:/docker-entrypoint-initdb.d/01-init-dbs.sh:ro
+      - ./deploy/postgres/dumps:/docker-entrypoint-initdb.d/dumps:ro
+    networks:
+      eduspace-net:
+        aliases:
+          - postgres
+          - auth-ms-db
+          - alumnos-ms-db
+          - planificacion-ms-db
+          - matricula-ms-db
+          - asistencia-ms-db
+          - calificaciones-ms-db
+          - pago-ms-db
+          - examenes-ms-db
+          - tareas-ms-db
+          - notificaciones-ms-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-eduspace} -d eduspace"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # ============================================================================
+  # 2. Mensajería Asíncrona (Apache Kafka en modo KRaft sin ZooKeeper)
+  # ============================================================================
+  kafka:
+    image: apache/kafka:3.8.0
+    container_name: eduspace-kafka
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_JVM_PERFORMANCE_OPTS: "-Xms160m -Xmx256m -XX:+UseSerialGC"
+      CLUSTER_ID: "5L6g3nShT-eMCtK--X86sw"
+    networks:
+      eduspace-net:
+        aliases:
+          - kafka
+          - e2e-kafka
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+        reservations:
+          memory: 192M
+
+  # ============================================================================
+  # 3. Keycloak IAM (Gestión de Identidad, Roles y Autenticación)
+  # ============================================================================
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.0
+    container_name: eduspace-keycloak
+    restart: unless-stopped
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin123}
+      KC_HEALTH_ENABLED: "true"
+      JAVA_OPTS_APPEND: "-Xms192m -Xmx256m -XX:+UseSerialGC"
+      KC_PROXY_HEADERS: "xforwarded"
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+    volumes:
+      - ./infra/keycloak/eduspace-realm.json:/opt/keycloak/data/import/eduspace-realm.json:ro
+    networks:
+      eduspace-net:
+        aliases:
+          - eduspace-keycloak
+          - keycloak
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # ============================================================================
+  # 4. Servidor de Configuración (Config Server)
+  # ============================================================================
+  eduspace-config:
+    image: ${DOCKER_HUB_USER:-witmer17}/eduspace-config:${DOCKER_TAG:-latest}
+    container_name: eduspace-config
+    restart: unless-stopped
+    environment:
+      JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      JAVA_TOOL_OPTIONS: "-Xms96m -Xmx160m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - eduspace-config
+          - config-server
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # ============================================================================
+  # 5. Registro y Descubrimiento de Servicios (Eureka Server)
+  # ============================================================================
+  eduspace-eureka:
+    image: ${DOCKER_HUB_USER:-witmer17}/eduspace-eureka:${DOCKER_TAG:-latest}
+    container_name: eduspace-eureka
+    restart: unless-stopped
+    depends_on:
+      - eduspace-config
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONFIG_SERVER_URL: http://eduspace-config:18888
+      JAVA_TOOL_OPTIONS: "-Xms96m -Xmx160m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - eduspace-eureka
+          - eureka-server
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  # ============================================================================
+  # 6. API Gateway
+  # ============================================================================
+  eduspace-gateway:
+    image: ${DOCKER_HUB_USER:-witmer17}/eduspace-gateway:${DOCKER_TAG:-latest}
+    container_name: eduspace-gateway
+    restart: unless-stopped
+    depends_on:
+      - eduspace-eureka
+      - eduspace-config
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONFIG_SERVER_URL: http://eduspace-config:18888
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx192m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - eduspace-gateway
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+        reservations:
+          memory: 160M
+
+  # ============================================================================
+  # 7. Microservicio de Autenticación (auth-ms)
+  # ============================================================================
+  auth-ms:
+    image: ${DOCKER_HUB_USER:-witmer17}/auth-ms:${DOCKER_TAG:-latest}
+    container_name: eduspace-auth-ms
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - eduspace-eureka
+      - eduspace-config
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONFIG_SERVER_URL: http://eduspace-config:18888
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      DB_USER: ${DB_USER:-eduspace}
+      DB_PASSWORD: ${DB_PASSWORD:-eduspace}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-eduspace-prod-secret-token-2026}
+      APP_AUTH_JWT_GENERAR_CLAVE_SI_FALTA: "true"
+      APP_AUTH_KEYCLOAK_ADMIN_ACEPTAR_TOKENS: "true"
+      APP_AUTH_KEYCLOAK_ADMIN_BASE_URL: "http://eduspace-keycloak:8080"
+      APP_AUTH_KEYCLOAK_ADMIN_REALM: "eduspace"
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx192m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - auth-ms
+    deploy:
+      resources:
+        limits:
+          memory: 288M
+        reservations:
+          memory: 160M
+
+  # ============================================================================
+  # 8. Microservicio de Planificación Académica (planificacion-ms)
+  # ============================================================================
+  planificacion-ms:
+    image: ${DOCKER_HUB_USER:-witmer17}/planificacion-ms:${DOCKER_TAG:-latest}
+    container_name: eduspace-planificacion-ms
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - eduspace-eureka
+      - eduspace-config
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONFIG_SERVER_URL: http://eduspace-config:18888
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      DB_USER: ${DB_USER:-eduspace}
+      DB_PASSWORD: ${DB_PASSWORD:-eduspace}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-eduspace-prod-secret-token-2026}
+      JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx192m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - planificacion-ms
+    deploy:
+      resources:
+        limits:
+          memory: 288M
+        reservations:
+          memory: 160M
+
+  # ============================================================================
+  # 9. Microservicio de Alumnos y Apoderados (alumnos-ms)
+  # ============================================================================
+  alumnos-ms:
+    image: ${DOCKER_HUB_USER:-witmer17}/alumnos-ms:${DOCKER_TAG:-latest}
+    container_name: eduspace-alumnos-ms
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - eduspace-eureka
+      - eduspace-config
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONFIG_SERVER_URL: http://eduspace-config:18888
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      DB_USER: ${DB_USER:-eduspace}
+      DB_PASSWORD: ${DB_PASSWORD:-eduspace}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-eduspace-prod-secret-token-2026}
+      JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx192m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - alumnos-ms
+    deploy:
+      resources:
+        limits:
+          memory: 288M
+        reservations:
+          memory: 160M
+
+  # ============================================================================
+  # 10. Microservicio de Matrículas (matricula-ms)
+  # ============================================================================
+  matricula-ms:
+    image: ${DOCKER_HUB_USER:-witmer17}/matricula-ms:${DOCKER_TAG:-latest}
+    container_name: eduspace-matricula-ms
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - kafka
+      - eduspace-eureka
+      - eduspace-config
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONFIG_SERVER_URL: http://eduspace-config:18888
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      DB_USER: ${DB_USER:-eduspace}
+      DB_PASSWORD: ${DB_PASSWORD:-eduspace}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-eduspace-prod-secret-token-2026}
+      JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx192m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - matricula-ms
+    deploy:
+      resources:
+        limits:
+          memory: 288M
+        reservations:
+          memory: 160M
+
+  # ============================================================================
+  # 11. Microservicio de Pagos y Caja (pago-ms con Mercado Pago)
+  # ============================================================================
+  pago-ms:
+    image: ${DOCKER_HUB_USER:-witmer17}/pago-ms:${DOCKER_TAG:-latest}
+    container_name: eduspace-pago-ms
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - kafka
+      - eduspace-eureka
+      - eduspace-config
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONFIG_SERVER_URL: http://eduspace-config:18888
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      DB_USER: ${DB_USER:-eduspace}
+      DB_PASSWORD: ${DB_PASSWORD:-eduspace}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-eduspace-prod-secret-token-2026}
+      JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN}
+      MERCADOPAGO_PUBLIC_KEY: ${MERCADOPAGO_PUBLIC_KEY}
+      MERCADOPAGO_BACK_URL: ${MERCADOPAGO_BACK_URL:-http://20.197.193.121/familia/pagos}
+      MERCADOPAGO_NOTIFICATION_URL: ${MERCADOPAGO_NOTIFICATION_URL:-http://20.197.193.121/api/v1/pagos/webhook/mercadopago}
+      MERCADOPAGO_CURRENCY: PEN
+      MERCADOPAGO_PRODUCCION: "true"
+      JAVA_TOOL_OPTIONS: "-Xms160m -Xmx224m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - pago-ms
+    deploy:
+      resources:
+        limits:
+          memory: 320M
+        reservations:
+          memory: 160M
+
+  # ============================================================================
+  # 12. Microservicio de Asistencia (asistencia-ms)
+  # ============================================================================
+  asistencia-ms:
+    image: ${DOCKER_HUB_USER:-witmer17}/asistencia-ms:${DOCKER_TAG:-latest}
+    container_name: eduspace-asistencia-ms
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - eduspace-eureka
+      - eduspace-config
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONFIG_SERVER_URL: http://eduspace-config:18888
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      DB_USER: ${DB_USER:-eduspace}
+      DB_PASSWORD: ${DB_PASSWORD:-eduspace}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-eduspace-prod-secret-token-2026}
+      JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx192m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - asistencia-ms
+    deploy:
+      resources:
+        limits:
+          memory: 288M
+        reservations:
+          memory: 160M
+
+  # ============================================================================
+  # 13. Microservicio de Calificaciones (calificaciones-ms)
+  # ============================================================================
+  calificaciones-ms:
+    image: ${DOCKER_HUB_USER:-witmer17}/calificaciones-ms:${DOCKER_TAG:-latest}
+    container_name: eduspace-calificaciones-ms
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - eduspace-eureka
+      - eduspace-config
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONFIG_SERVER_URL: http://eduspace-config:18888
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      DB_USER: ${DB_USER:-eduspace}
+      DB_PASSWORD: ${DB_PASSWORD:-eduspace}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-eduspace-prod-secret-token-2026}
+      JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx192m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - calificaciones-ms
+    deploy:
+      resources:
+        limits:
+          memory: 288M
+        reservations:
+          memory: 160M
+
+  # ============================================================================
+  # 14. Microservicio de Exámenes (examenes-ms)
+  # ============================================================================
+  examenes-ms:
+    image: ${DOCKER_HUB_USER:-witmer17}/examenes-ms:${DOCKER_TAG:-latest}
+    container_name: eduspace-examenes-ms
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - eduspace-eureka
+      - eduspace-config
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONFIG_SERVER_URL: http://eduspace-config:18888
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      DB_USER: ${DB_USER:-eduspace}
+      DB_PASSWORD: ${DB_PASSWORD:-eduspace}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-eduspace-prod-secret-token-2026}
+      JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx192m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - examenes-ms
+    deploy:
+      resources:
+        limits:
+          memory: 288M
+        reservations:
+          memory: 160M
+
+  # ============================================================================
+  # 15. Microservicio de Tareas (tareas-ms)
+  # ============================================================================
+  tareas-ms:
+    image: ${DOCKER_HUB_USER:-witmer17}/tareas-ms:${DOCKER_TAG:-latest}
+    container_name: eduspace-tareas-ms
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - eduspace-eureka
+      - eduspace-config
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONFIG_SERVER_URL: http://eduspace-config:18888
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      DB_USER: ${DB_USER:-eduspace}
+      DB_PASSWORD: ${DB_PASSWORD:-eduspace}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-eduspace-prod-secret-token-2026}
+      JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx192m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - tareas-ms
+    deploy:
+      resources:
+        limits:
+          memory: 288M
+        reservations:
+          memory: 160M
+
+  # ============================================================================
+  # 16. Microservicio de Notificaciones (notificaciones-ms)
+  # ============================================================================
+  notificaciones-ms:
+    image: ${DOCKER_HUB_USER:-witmer17}/notificaciones-ms:${DOCKER_TAG:-latest}
+    container_name: eduspace-notificaciones-ms
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - kafka
+      - eduspace-eureka
+      - eduspace-config
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      CONFIG_SERVER_URL: http://eduspace-config:18888
+      EUREKA_URI: http://eureka-server:8761/eureka/
+      DB_USER: ${DB_USER:-eduspace}
+      DB_PASSWORD: ${DB_PASSWORD:-eduspace}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-eduspace-prod-secret-token-2026}
+      JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://eduspace-keycloak:8080/realms/eduspace/protocol/openid-connect/certs
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx192m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+    networks:
+      eduspace-net:
+        aliases:
+          - notificaciones-ms
+    deploy:
+      resources:
+        limits:
+          memory: 288M
+        reservations:
+          memory: 160M
+
+  # ============================================================================
+  # 17. Frontend Web (Angular compilado servido en Nginx interno)
+  # ============================================================================
+  frontend:
+    image: ${DOCKER_HUB_USER:-witmer17}/eduspace-frontend:${DOCKER_TAG:-latest}
+    container_name: eduspace-frontend
+    restart: unless-stopped
+    networks:
+      eduspace-net:
+        aliases:
+          - frontend
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+
+  # ============================================================================
+  # 18. Proxy Inverso Caddy (Expone puertos 80/443 en el servidor Azure)
+  # ============================================================================
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: eduspace-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - eduspace-net
+    depends_on:
+      - frontend
+      - eduspace-gateway
+      - keycloak
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M

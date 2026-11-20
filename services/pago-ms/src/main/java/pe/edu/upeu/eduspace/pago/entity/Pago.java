@@ -36,6 +36,7 @@ public class Pago {
     @Column(nullable = false, length = 15)
     private String medio; // EFECTIVO, TARJETA, YAPE_PLIN, TRANSFERENCIA, ONLINE_SIMULADO
 
+    //codigo de operacion
     @Column(length = 80)
     private String referencia;
 
@@ -43,6 +44,8 @@ public class Pago {
     @Builder.Default
     private String estado = "CONFIRMADO"; // CONFIRMADO, ANULADO
 
+
+    //
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "caja_sesion_id")
     private CajaSesion cajaSesion;
@@ -63,6 +66,9 @@ public class Pago {
     @Column(name = "motivo_anulacion", length = 300)
     private String motivoAnulacion;
 
+
+
+    //Escudo contra cobros duplicados
     @Column(name = "idempotency_key", length = 80)
     private String idempotencyKey;
 

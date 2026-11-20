@@ -12,6 +12,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+
+//resolución o constancia de beca otorgada
+
+
 public class DescuentoAlumno {
 
     @Id
@@ -33,6 +37,9 @@ public class DescuentoAlumno {
 
     @Column(name = "aprobado_por")
     private Long aprobadoPor;
+
+
+    //si el estudiante baja su rendimiento se le quita la beca y si no se queda como tal
 
     @Column(nullable = false)
     @Builder.Default

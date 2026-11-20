@@ -22,3 +22,13 @@ management:
 # Token compartido entre servicios para /internal/** (obligatorio en PROD: sin él el servicio no arranca).
 eduspace:
   service-token: ${SERVICE_TOKEN}
+
+app:
+  auth:
+    jwt:
+      generar-clave-si-falta: true
+    keycloak-admin:
+      aceptar-tokens: true
+      base-url: ${KEYCLOAK_URL:http://eduspace-keycloak:8080}
+      realm: eduspace
+
