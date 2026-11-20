@@ -24,3 +24,4 @@ public interface OutboxEventoRepository extends JpaRepository<OutboxEvento, UUID
 
     long deleteByEnviadoEnBefore(LocalDateTime fechaLimite);
 }
+

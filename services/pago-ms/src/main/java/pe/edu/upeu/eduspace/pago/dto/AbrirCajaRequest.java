@@ -13,3 +13,4 @@ public class AbrirCajaRequest {
     @DecimalMin(value = "0.00", message = "El monto no puede ser negativo")
     private BigDecimal montoApertura = BigDecimal.ZERO;
 }
+

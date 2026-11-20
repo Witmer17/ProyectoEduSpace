@@ -12,6 +12,7 @@ import pe.edu.upeu.eduspace.pago.entity.Comprobante;
 import pe.edu.upeu.eduspace.pago.entity.Pago;
 import pe.edu.upeu.eduspace.pago.entity.SerieComprobante;
 import pe.edu.upeu.eduspace.pago.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.pago.mapper.ComprobanteMapper;
 import pe.edu.upeu.eduspace.pago.repository.ComprobanteRepository;
 import pe.edu.upeu.eduspace.pago.repository.SerieComprobanteRepository;
 import pe.edu.upeu.eduspace.pago.util.PdfTexto;
@@ -27,6 +28,7 @@ public class ComprobanteService {
     private final ComprobanteRepository comprobanteRepository;
     private final SerieComprobanteRepository serieComprobanteRepository;
     private final MinioClient minioClient;
+    private final ComprobanteMapper comprobanteMapper;
 
     @Value("${app.minio.bucket-comprobantes:comprobantes}")
     private String bucketComprobantes;
@@ -108,17 +110,7 @@ public class ComprobanteService {
     }
 
     public ComprobanteResponse toResponse(Comprobante c) {
-        return ComprobanteResponse.builder()
-            .id(c.getId())
-            .pagoId(c.getPago().getId())
-            .tipo(c.getTipo())
-            .serie(c.getSerie())
-            .numero(c.getNumero())
-            .numeroCompleto(String.format("%s-%08d", c.getSerie(), c.getNumero()))
-            .total(c.getTotal())
-            .estado(c.getEstado())
-            .rutaPdf(c.getRutaPdf())
-            .emitidoEn(c.getEmitidoEn())
-            .build();
+        return comprobanteMapper.toResponse(c);
     }
 }
+

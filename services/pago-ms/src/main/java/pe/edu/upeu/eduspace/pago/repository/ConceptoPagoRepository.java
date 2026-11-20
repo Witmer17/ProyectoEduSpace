@@ -14,3 +14,4 @@ public interface ConceptoPagoRepository extends JpaRepository<ConceptoPago, Long
 
     List<ConceptoPago> findByActivoTrue();
 }
+

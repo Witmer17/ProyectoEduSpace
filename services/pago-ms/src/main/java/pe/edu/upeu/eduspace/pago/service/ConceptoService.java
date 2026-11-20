@@ -8,6 +8,7 @@ import pe.edu.upeu.eduspace.pago.dto.ConceptoResponse;
 import pe.edu.upeu.eduspace.pago.entity.ConceptoPago;
 import pe.edu.upeu.eduspace.pago.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.pago.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.pago.mapper.ConceptoPagoMapper;
 import pe.edu.upeu.eduspace.pago.repository.ConceptoPagoRepository;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
 public class ConceptoService {
 
     private final ConceptoPagoRepository conceptoPagoRepository;
+    private final ConceptoPagoMapper conceptoPagoMapper;
 
     @Transactional(readOnly = true)
     public List<ConceptoResponse> listarActivos() {
@@ -59,12 +61,7 @@ public class ConceptoService {
     }
 
     private ConceptoResponse toResponse(ConceptoPago c) {
-        return ConceptoResponse.builder()
-            .id(c.getId())
-            .codigo(c.getCodigo())
-            .nombre(c.getNombre())
-            .tipo(c.getTipo())
-            .activo(c.getActivo())
-            .build();
+        return conceptoPagoMapper.toResponse(c);
     }
 }
+

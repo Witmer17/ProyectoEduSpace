@@ -34,15 +34,18 @@ public class Pago {
     private BigDecimal montoTotal;
 
     @Column(nullable = false, length = 15)
-    private String medio; // EFECTIVO, TARJETA, YAPE_PLIN, TRANSFERENCIA, ONLINE_SIMULADO, CREDITO, MERCADOPAGO
+    private String medio; // EFECTIVO, TARJETA, YAPE_PLIN, TRANSFERENCIA, ONLINE_SIMULADO
 
+    //codigo de operacion
     @Column(length = 80)
     private String referencia;
 
     @Column(nullable = false, length = 10)
     @Builder.Default
-    private String estado = "CONFIRMADO"; // CONFIRMADO, ANULADO; PENDIENTE y RECHAZADO en pagos de apoderados por aprobar
+    private String estado = "CONFIRMADO"; // CONFIRMADO, ANULADO
 
+
+    //
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "caja_sesion_id")
     private CajaSesion cajaSesion;
@@ -63,27 +66,9 @@ public class Pago {
     @Column(name = "motivo_anulacion", length = 300)
     private String motivoAnulacion;
 
-    /** Quien aprobó o rechazó el pago de un apoderado. */
-    @Column(name = "aprobado_por")
-    private Long aprobadoPor;
 
-    @Column(name = "aprobado_en")
-    private LocalDateTime aprobadoEn;
 
-    @Column(name = "motivo_rechazo", length = 300)
-    private String motivoRechazo;
-
-    /** RECIBO o BOLETA, el que pidió el apoderado: se emite al aprobar. */
-    @Column(name = "tipo_comprobante", length = 10)
-    private String tipoComprobante;
-
-    /** La preferencia de Mercado Pago de este pago (solo pagos en línea con la pasarela real). */
-    @Column(name = "preferencia_id", length = 80)
-    private String preferenciaId;
-
-    @Column(name = "preferencia_url", length = 500)
-    private String preferenciaUrl;
-
+    //Escudo contra cobros duplicados
     @Column(name = "idempotency_key", length = 80)
     private String idempotencyKey;
 
@@ -91,3 +76,4 @@ public class Pago {
     @Builder.Default
     private List<PagoDetalle> detalles = new ArrayList<>();
 }
+

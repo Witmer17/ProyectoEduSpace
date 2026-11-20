@@ -13,3 +13,4 @@ public class CerrarCajaRequest {
     @DecimalMin(value = "0.00", message = "El monto no puede ser negativo")
     private BigDecimal montoCierreDeclarado;
 }
+

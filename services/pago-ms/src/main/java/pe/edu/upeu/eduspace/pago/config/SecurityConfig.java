@@ -47,35 +47,18 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/v1/pagos/conceptos/**", "/api/v1/pagos/tarifas/**", "/api/v1/pagos/descuentos/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/pagos/descuentos/asignar").hasRole("ADMIN")
 
-                // Crédito del alumno: lo ven caja, secretaría y administración; depositan y cobran caja y administración; anular es del administrador
-                .requestMatchers(HttpMethod.GET, "/api/v1/pagos/alumnos/*/credito").hasAnyRole("CAJERO", "SECRETARIA", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/v1/pagos/alumnos/*/credito/depositos", "/api/v1/pagos/alumnos/*/credito/cobrar").hasAnyRole("CAJERO", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/v1/pagos/creditos/movimientos/*/anular").hasRole("ADMIN")
+                // Webhook externo Mercado Pago (público)
+                .requestMatchers(HttpMethod.POST, "/api/v1/pagos/webhook/**").permitAll()
 
                 // Pagos
-                .requestMatchers(HttpMethod.POST, "/api/v1/pagos/online", "/api/v1/pagos/online/mercadopago", "/api/v1/pagos/online/mercadopago/*/sincronizar").hasRole("APODERADO")
+                .requestMatchers(HttpMethod.POST, "/api/v1/pagos/online").hasRole("APODERADO")
+                .requestMatchers(HttpMethod.POST, "/api/v1/pagos/mercadopago/preferencia").hasRole("APODERADO")
                 .requestMatchers(HttpMethod.POST, "/api/v1/pagos").hasAnyRole("CAJERO", "ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/pagos/*/anular").hasRole("ADMIN")
-                // Pago de la matrícula (orden + pasarela simulada + generar con el crédito). El apoderado solo con sus hijos (lo valida el servicio).
-                .requestMatchers("/api/v1/pagos/alumnos/*/matricula", "/api/v1/pagos/alumnos/*/matricula/**").hasAnyRole("APODERADO", "CAJERO", "SECRETARIA", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/v1/pagos/pasarela/ordenes/*/pagar").hasAnyRole("APODERADO", "CAJERO", "SECRETARIA", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/v1/pagos/pasarela/ordenes/*/mercadopago", "/api/v1/pagos/pasarela/ordenes/*/mercadopago/sincronizar").hasAnyRole("APODERADO", "CAJERO", "SECRETARIA", "ADMIN")
-                // Solicitudes de descuento de la matrícula: las opciones las ve quien pide; responder es solo de secretaría y administración
-                .requestMatchers(HttpMethod.GET, "/api/v1/pagos/solicitudes-descuento/opciones").hasAnyRole("APODERADO", "CAJERO", "SECRETARIA", "ADMIN")
-                .requestMatchers("/api/v1/pagos/solicitudes-descuento", "/api/v1/pagos/solicitudes-descuento/**").hasAnyRole("SECRETARIA", "ADMIN")
-                // Los avisos de las pasarelas no llevan sesión: los protege la firma HMAC (simulada) o la firma x-signature + consulta al API (Mercado Pago)
-                .requestMatchers(HttpMethod.POST, "/api/v1/pagos/pasarela/notificacion", "/api/v1/pagos/pasarela/mercadopago/notificacion").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/pagos/matriculas/por-pagar").hasAnyRole("CAJERO", "SECRETARIA", "ADMIN")
-                // Pagos de apoderados por aprobar: los aprueba o rechaza caja (o el administrador)
-                .requestMatchers(HttpMethod.GET, "/api/v1/pagos/por-aprobar", "/api/v1/pagos/por-aprobar/conteo").hasAnyRole("CAJERO", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/v1/pagos/*/aprobar", "/api/v1/pagos/*/rechazar").hasAnyRole("CAJERO", "ADMIN")
                 
                 // Consultas y reportes
-                // Caja también ve morosos y cobranza (solo lectura) para atender en ventanilla
-                .requestMatchers(HttpMethod.GET, "/api/v1/pagos/morosos/**", "/api/v1/pagos/morosos", "/api/v1/pagos/reportes/**").hasAnyRole("ADMIN", "SECRETARIA", "CAJERO")
                 .requestMatchers("/api/v1/pagos/morosos/**", "/api/v1/pagos/reportes/**").hasAnyRole("ADMIN", "SECRETARIA")
                 .requestMatchers("/api/v1/pagos/mias/**").hasRole("APODERADO")
-                .requestMatchers(HttpMethod.GET, "/api/v1/pagos/alumnos/*/descuentos").hasAnyRole("CAJERO", "SECRETARIA", "ADMIN")
                 .requestMatchers("/api/v1/pagos/alumnos/*/estado-cuenta").hasAnyRole("CAJERO", "SECRETARIA", "ADMIN", "APODERADO", "ALUMNO")
                 .requestMatchers(HttpMethod.GET, "/api/v1/pagos/*/comprobante").hasAnyRole("CAJERO", "ADMIN", "APODERADO", "ALUMNO", "SECRETARIA")
                 .requestMatchers(HttpMethod.GET, "/api/v1/pagos/**").hasAnyRole("CAJERO", "SECRETARIA", "ADMIN", "APODERADO")
@@ -121,3 +104,4 @@ public class SecurityConfig {
         }
     }
 }
+

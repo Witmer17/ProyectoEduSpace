@@ -88,3 +88,4 @@ public class Cuota {
     @Builder.Default
     private Long version = 0L;
 }
+

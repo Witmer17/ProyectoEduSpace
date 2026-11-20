@@ -32,3 +32,4 @@ public class SerieComprobante {
     @Builder.Default
     private Boolean activa = true;
 }
+

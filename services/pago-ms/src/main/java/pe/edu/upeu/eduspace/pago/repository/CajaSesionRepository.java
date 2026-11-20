@@ -16,3 +16,4 @@ public interface CajaSesionRepository extends JpaRepository<CajaSesion, Long> {
     @Query("SELECT COUNT(c) > 0 FROM CajaSesion c WHERE c.cajeroUsuarioId = :cajeroId AND c.estado = 'ABIERTA'")
     boolean existsCajaAbierta(@Param("cajeroId") Long cajeroId);
 }
+

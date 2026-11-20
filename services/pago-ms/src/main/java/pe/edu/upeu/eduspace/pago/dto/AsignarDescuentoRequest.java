@@ -19,3 +19,4 @@ public class AsignarDescuentoRequest {
     @Size(max = 300)
     private String motivo;
 }
+

@@ -29,3 +29,4 @@ public class EventoProcesado {
     @Builder.Default
     private LocalDateTime procesadoEn = LocalDateTime.now();
 }
+

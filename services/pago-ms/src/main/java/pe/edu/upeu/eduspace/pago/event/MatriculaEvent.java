@@ -22,8 +22,7 @@ public class MatriculaEvent {
     private String tipo;
     private Long seccionAnteriorId;
     private String motivo;
-    /** Forma de pago de las pensiones acordada en la matrícula; sin dato = mensual. */
-    private String planPago;
     private Long responsablePagoUsuarioId;
     private String responsablePagoNombre;
 }
+

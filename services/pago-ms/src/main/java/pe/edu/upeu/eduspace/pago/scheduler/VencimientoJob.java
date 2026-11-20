@@ -96,3 +96,4 @@ public class VencimientoJob {
         log.info("Procesadas {} cuotas recién vencidas y {} mora(s) diarias.", cuotasVencidas.size(), yaVencidas.size());
     }
 }
+

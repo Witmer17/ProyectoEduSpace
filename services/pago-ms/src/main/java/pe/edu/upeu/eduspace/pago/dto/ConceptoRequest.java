@@ -22,3 +22,4 @@ public class ConceptoRequest {
 
     private Boolean activo = true;
 }
+

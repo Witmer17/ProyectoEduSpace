@@ -29,3 +29,4 @@ public class ConceptoPago {
     @Builder.Default
     private Boolean activo = true;
 }
+

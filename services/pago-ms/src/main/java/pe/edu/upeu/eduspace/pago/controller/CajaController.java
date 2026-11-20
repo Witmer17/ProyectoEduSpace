@@ -49,3 +49,4 @@ public class CajaController {
         return ResponseEntity.ok(cajaService.reporteCaja(id));
     }
 }
+

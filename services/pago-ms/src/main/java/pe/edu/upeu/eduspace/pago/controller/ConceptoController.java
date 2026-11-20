@@ -45,3 +45,4 @@ public class ConceptoController {
         return ResponseEntity.ok(conceptoService.actualizar(id, req));
     }
 }
+

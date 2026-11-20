@@ -13,3 +13,4 @@ public interface ComprobanteRepository extends JpaRepository<Comprobante, Long> 
 
     Optional<Comprobante> findByTipoAndSerieAndNumero(String tipo, String serie, Long numero);
 }
+

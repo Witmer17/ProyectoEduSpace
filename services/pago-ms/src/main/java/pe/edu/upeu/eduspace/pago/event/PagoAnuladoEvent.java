@@ -18,3 +18,4 @@ public class PagoAnuladoEvent {
     private String conceptoTipo;   // MATRICULA, PENSION, OTRO
     private java.math.BigDecimal monto;
 }
+

@@ -19,3 +19,4 @@ public class CajaResponse {
     private BigDecimal diferencia;
     private String estado;
 }
+

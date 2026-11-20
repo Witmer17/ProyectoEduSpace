@@ -21,9 +21,6 @@ public class PagoResponse {
     private Long cajaSesionId;
     private Long registradoPor;
     private LocalDateTime pagadoEn;
-    /** Cuando se aprobó o rechazó un pago de apoderado, y el motivo si se rechazó. */
-    private LocalDateTime aprobadoEn;
-    private String motivoRechazo;
     private String idempotencyKey;
     private ComprobanteResponse comprobante;
     private List<PagoDetalleResponse> detalles;
@@ -39,3 +36,4 @@ public class PagoResponse {
         private String nuevoEstadoCuota;
     }
 }
+

@@ -40,3 +40,4 @@ public class TarifaRequest {
 
     private Boolean activo = true;
 }
+

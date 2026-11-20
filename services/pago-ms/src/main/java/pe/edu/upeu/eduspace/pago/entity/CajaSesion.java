@@ -46,3 +46,4 @@ public class CajaSesion {
     @Builder.Default
     private String estado = "ABIERTA"; // ABIERTA, CERRADA
 }
+

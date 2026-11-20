@@ -20,3 +20,4 @@ public class ComprobanteResponse {
     private String rutaPdf;
     private LocalDateTime emitidoEn;
 }
+

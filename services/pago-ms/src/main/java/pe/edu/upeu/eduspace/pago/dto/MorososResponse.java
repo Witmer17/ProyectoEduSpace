@@ -26,3 +26,4 @@ public class MorososResponse {
         private int cuotasVencidas;
     }
 }
+

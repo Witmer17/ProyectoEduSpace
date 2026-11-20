@@ -14,5 +14,5 @@ public class DescuentoResponse {
     private BigDecimal valor;
     private String aplicaA;
     private Boolean activo;
-    private String codigo;
 }
+

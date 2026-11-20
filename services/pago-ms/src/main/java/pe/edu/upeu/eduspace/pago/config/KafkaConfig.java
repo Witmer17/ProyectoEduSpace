@@ -41,3 +41,4 @@ public class KafkaConfig {
         return TopicBuilder.name(TOPIC_PAGO_ANULADO).partitions(3).replicas(1).build();
     }
 }
+

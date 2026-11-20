@@ -19,6 +19,7 @@ import pe.edu.upeu.eduspace.pago.entity.Comprobante;
 import pe.edu.upeu.eduspace.pago.entity.Cuota;
 import pe.edu.upeu.eduspace.pago.entity.MatriculaLocal;
 import pe.edu.upeu.eduspace.pago.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.pago.mapper.CuotaMapper;
 import pe.edu.upeu.eduspace.pago.repository.ComprobanteRepository;
 import pe.edu.upeu.eduspace.pago.repository.CuotaRepository;
 import pe.edu.upeu.eduspace.pago.repository.MatriculaLocalRepository;
@@ -40,13 +41,12 @@ public class PagoController {
     private final PagoService pagoService;
     private final PagoOnlineService pagoOnlineService;
     private final AnulacionService anulacionService;
-    private final CreditoService creditoService;
     private final ComprobanteService comprobanteService;
     private final ComprobanteRepository comprobanteRepository;
     private final CuotaRepository cuotaRepository;
     private final MatriculaLocalRepository matriculaLocalRepository;
-    private final pe.edu.upeu.eduspace.pago.repository.DescuentoAlumnoRepository descuentoAlumnoRepository;
     private final pe.edu.upeu.eduspace.pago.client.AlumnosGateway alumnosGateway;
+    private final CuotaMapper cuotaMapper;
 
     @PostMapping
     @Operation(summary = "Registrar cobro en ventanilla o presencial (CAJERO, ADMIN)")
@@ -56,62 +56,12 @@ public class PagoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(pagoService.registrarPago(req, usuarioId));
     }
 
-    @PostMapping("/online/mercadopago")
-    @Operation(summary = "Pago de pensiones con Mercado Pago (APODERADO): devuelve la URL donde pagar; el aviso confirma el pago")
-    public ResponseEntity<PagoOnlineService.PreferenciaVista> pagarOnlineMercadoPago(@Valid @RequestBody RegistrarPagoRequest req,
-                                                                                     @AuthenticationPrincipal Jwt jwt) {
-        Long usuarioId = pe.edu.upeu.eduspace.pago.security.UsuarioActual.id(jwt);
-        return ResponseEntity.status(HttpStatus.CREATED).body(pagoOnlineService.pagarConMercadoPago(req, usuarioId));
-    }
-
-    @PostMapping("/online/mercadopago/{id}/sincronizar")
-    @Operation(summary = "Al volver de Mercado Pago: consulta una vez el resultado del pago (APODERADO, solo sus pagos)")
-    public ResponseEntity<Void> sincronizarPagoMercadoPago(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        pagoOnlineService.sincronizarPension(id, pe.edu.upeu.eduspace.pago.security.UsuarioActual.id(jwt));
-        return ResponseEntity.noContent().build();
-    }
-
     @PostMapping("/online")
     @Operation(summary = "Pago en línea simulado desde la app (APODERADO)")
     public ResponseEntity<PagoResponse> pagarOnline(@Valid @RequestBody RegistrarPagoRequest req,
                                                    @AuthenticationPrincipal Jwt jwt) {
         Long usuarioId = pe.edu.upeu.eduspace.pago.security.UsuarioActual.id(jwt);
         return ResponseEntity.status(HttpStatus.CREATED).body(pagoOnlineService.pagarOnlineSimulado(req, usuarioId));
-    }
-
-    @GetMapping("/por-aprobar")
-    @Operation(summary = "Pagos de apoderados esperando aprobación de caja (CAJERO, ADMIN)")
-    public ResponseEntity<List<PagoResponse>> porAprobar() {
-        return ResponseEntity.ok(pagoService.porAprobar());
-    }
-
-    @GetMapping("/por-aprobar/conteo")
-    @Operation(summary = "Cuántos pagos de apoderados esperan aprobación (CAJERO, ADMIN)")
-    public ResponseEntity<java.util.Map<String, Long>> conteoPorAprobar() {
-        return ResponseEntity.ok(java.util.Map.of("pendientes", pagoService.contarPorAprobar()));
-    }
-
-    @PostMapping("/{id}/aprobar")
-    @Operation(summary = "Aprobar el pago de un apoderado: confirma las cuotas y emite el comprobante (CAJERO, ADMIN)")
-    public ResponseEntity<PagoResponse> aprobar(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
-        Long usuarioId = pe.edu.upeu.eduspace.pago.security.UsuarioActual.id(jwt);
-        return ResponseEntity.ok(pagoService.aprobar(id, usuarioId));
-    }
-
-    @PostMapping("/{id}/rechazar")
-    @Operation(summary = "Rechazar el pago de un apoderado con un motivo (CAJERO, ADMIN)")
-    public ResponseEntity<PagoResponse> rechazar(@PathVariable Long id,
-                                                 @Valid @RequestBody AnularPagoRequest req,
-                                                 @AuthenticationPrincipal Jwt jwt) {
-        Long usuarioId = pe.edu.upeu.eduspace.pago.security.UsuarioActual.id(jwt);
-        return ResponseEntity.ok(pagoService.rechazar(id, req.getMotivo(), usuarioId));
-    }
-
-    @GetMapping("/mias/pendientes")
-    @Operation(summary = "Pagos del apoderado en revisión o rechazados (APODERADO)")
-    public ResponseEntity<List<PagoResponse>> misPendientes(@AuthenticationPrincipal Jwt jwt) {
-        Long usuarioId = pe.edu.upeu.eduspace.pago.security.UsuarioActual.id(jwt);
-        return ResponseEntity.ok(pagoService.pendientesDelApoderado(usuarioId));
     }
 
     @GetMapping("/{id}")
@@ -136,19 +86,6 @@ public class PagoController {
         Long usuarioId = pe.edu.upeu.eduspace.pago.security.UsuarioActual.id(jwt);
         anulacionService.anularPago(id, req, usuarioId);
         return ResponseEntity.noContent().build();
-    }
-
-    /** Un descuento asignado a un alumno, con su nombre y valor (caja, secretaría y administración). */
-    public record DescuentoDelAlumno(Long id, String nombre, String tipo, BigDecimal valor, String aplicaA, Long anioId, String motivo) {}
-
-    @GetMapping("/alumnos/{alumnoId}/descuentos")
-    @Operation(summary = "Descuentos vigentes del alumno, con su nombre y valor (CAJERO, SECRETARIA, ADMIN)")
-    @Transactional(readOnly = true)
-    public ResponseEntity<List<DescuentoDelAlumno>> descuentosDelAlumno(@PathVariable Long alumnoId) {
-        return ResponseEntity.ok(descuentoAlumnoRepository.findVigentesDelAlumno(alumnoId).stream()
-            .map(da -> new DescuentoDelAlumno(da.getId(), da.getDescuento().getNombre(), da.getDescuento().getTipo(),
-                da.getDescuento().getValor(), da.getDescuento().getAplicaA(), da.getAnioId(), da.getMotivo()))
-            .toList());
     }
 
     @GetMapping("/alumnos/{alumnoId}/estado-cuenta")
@@ -177,26 +114,7 @@ public class PagoController {
                 pendiente = pendiente.add(c.getSaldo());
             }
 
-            cuotasResp.add(CuotaResponse.builder()
-                .id(c.getId())
-                .matriculaId(c.getMatricula() != null ? c.getMatricula().getMatriculaId() : null)
-                .alumnoId(c.getAlumnoId())
-                .anioId(c.getAnioId())
-                .conceptoId(c.getConcepto().getId())
-                .conceptoNombre(c.getConcepto().getNombre())
-                .conceptoTipo(c.getConcepto().getTipo())
-                .descripcion(c.getDescripcion())
-                .numeroCuota(c.getNumeroCuota())
-                .montoBase(c.getMontoBase())
-                .descuento(c.getDescuento())
-                .mora(c.getMora())
-                .montoTotal(c.getMontoTotal())
-                .saldo(c.getSaldo())
-                .fechaVencimiento(c.getFechaVencimiento())
-                .estado(c.getEstado())
-                .diasAtraso(diasAtraso)
-                .avisoEnviado(c.getAvisoEnviado())
-                .build());
+            cuotasResp.add(cuotaMapper.toResponse(c));
         }
 
         return ResponseEntity.ok(EstadoCuentaResponse.builder()
@@ -206,7 +124,6 @@ public class PagoController {
             .totalCobrado(cobrado)
             .totalPendiente(pendiente)
             .totalVencido(vencido)
-            .credito(creditoService.saldoDe(alumnoId))
             .cuotas(cuotasResp)
             .build());
     }
@@ -221,28 +138,8 @@ public class PagoController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate vencimiento,
             Pageable pageable) {
 
-        LocalDate hoy = LocalDate.now();
         var page = cuotaRepository.findCuotasFiltradas(estado, alumnoId, seccionId, vencimiento, pageable)
-            .map(c -> CuotaResponse.builder()
-                .id(c.getId())
-                .matriculaId(c.getMatricula() != null ? c.getMatricula().getMatriculaId() : null)
-                .alumnoId(c.getAlumnoId())
-                .anioId(c.getAnioId())
-                .conceptoId(c.getConcepto().getId())
-                .conceptoNombre(c.getConcepto().getNombre())
-                .conceptoTipo(c.getConcepto().getTipo())
-                .descripcion(c.getDescripcion())
-                .numeroCuota(c.getNumeroCuota())
-                .montoBase(c.getMontoBase())
-                .descuento(c.getDescuento())
-                .mora(c.getMora())
-                .montoTotal(c.getMontoTotal())
-                .saldo(c.getSaldo())
-                .fechaVencimiento(c.getFechaVencimiento())
-                .estado(c.getEstado())
-                .diasAtraso(c.getFechaVencimiento().isBefore(hoy) ? ChronoUnit.DAYS.between(c.getFechaVencimiento(), hoy) : 0)
-                .avisoEnviado(c.getAvisoEnviado())
-                .build());
+            .map(cuotaMapper::toResponse);
 
         return ResponseEntity.ok(PageResponse.from(page));
     }
@@ -307,28 +204,10 @@ public class PagoController {
         for (AlumnoContactoResponse.HijoResumen hijo : hijos) {
             List<Cuota> cuotas = cuotaRepository.findByAlumnoIdOrderByFechaVencimientoAsc(hijo.getAlumnoId());
             for (Cuota c : cuotas) {
-                resultado.add(CuotaResponse.builder()
-                    .id(c.getId())
-                    .matriculaId(c.getMatricula() != null ? c.getMatricula().getMatriculaId() : null)
-                    .alumnoId(c.getAlumnoId())
-                    .anioId(c.getAnioId())
-                    .conceptoId(c.getConcepto().getId())
-                    .conceptoNombre(c.getConcepto().getNombre())
-                    .conceptoTipo(c.getConcepto().getTipo())
-                    .descripcion(c.getDescripcion())
-                    .numeroCuota(c.getNumeroCuota())
-                    .montoBase(c.getMontoBase())
-                    .descuento(c.getDescuento())
-                    .mora(c.getMora())
-                    .montoTotal(c.getMontoTotal())
-                    .saldo(c.getSaldo())
-                    .fechaVencimiento(c.getFechaVencimiento())
-                    .estado(c.getEstado())
-                    .diasAtraso(c.getFechaVencimiento().isBefore(hoy) ? ChronoUnit.DAYS.between(c.getFechaVencimiento(), hoy) : 0)
-                    .avisoEnviado(c.getAvisoEnviado())
-                    .build());
+                resultado.add(cuotaMapper.toResponse(c));
             }
         }
         return ResponseEntity.ok(resultado);
     }
 }
+

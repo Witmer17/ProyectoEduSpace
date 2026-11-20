@@ -14,3 +14,4 @@ public interface EventoProcesadoRepository extends JpaRepository<EventoProcesado
 
     long deleteByProcesadoEnBefore(LocalDateTime fechaLimite);
 }
+

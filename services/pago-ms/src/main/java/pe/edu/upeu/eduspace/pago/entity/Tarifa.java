@@ -50,3 +50,4 @@ public class Tarifa {
     @Builder.Default
     private Boolean activo = true;
 }
+

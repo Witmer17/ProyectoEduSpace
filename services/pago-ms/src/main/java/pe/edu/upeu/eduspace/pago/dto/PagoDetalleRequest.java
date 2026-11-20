@@ -16,3 +16,4 @@ public class PagoDetalleRequest {
     @DecimalMin(value = "0.01", message = "El monto aplicado debe ser mayor a 0")
     private BigDecimal montoAplicado;
 }
+

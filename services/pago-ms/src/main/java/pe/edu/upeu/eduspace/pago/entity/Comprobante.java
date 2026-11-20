@@ -49,3 +49,4 @@ public class Comprobante {
     @Builder.Default
     private LocalDateTime emitidoEn = LocalDateTime.now();
 }
+

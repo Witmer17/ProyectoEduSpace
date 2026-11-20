@@ -23,3 +23,4 @@ public class ErrorResponse {
     private LocalDateTime fecha;
     private List<String> detalles;
 }
+

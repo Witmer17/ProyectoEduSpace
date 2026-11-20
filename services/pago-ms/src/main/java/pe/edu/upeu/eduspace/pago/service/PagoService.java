@@ -15,6 +15,7 @@ import pe.edu.upeu.eduspace.pago.event.EventoSobre;
 import pe.edu.upeu.eduspace.pago.event.PagoConfirmadoEvent;
 import pe.edu.upeu.eduspace.pago.exception.BusinessRuleException;
 import pe.edu.upeu.eduspace.pago.exception.ResourceNotFoundException;
+import pe.edu.upeu.eduspace.pago.mapper.PagoMapper;
 import pe.edu.upeu.eduspace.pago.repository.*;
 
 import java.math.BigDecimal;
@@ -26,16 +27,14 @@ import java.util.*;
 @RequiredArgsConstructor
 public class PagoService {
 
-    static final String MERCADOPAGO = "MERCADOPAGO";
-
     private final PagoRepository pagoRepository;
     private final PagoDetalleRepository pagoDetalleRepository;
     private final CuotaRepository cuotaRepository;
     private final CajaSesionRepository cajaSesionRepository;
     private final OutboxEventoRepository outboxEventoRepository;
     private final ComprobanteService comprobanteService;
-    private final SolicitudDescuentoRepository solicitudesDescuento;
     private final ObjectMapper objectMapper;
+    private final PagoMapper pagoMapper;
 
     @Transactional
     public PagoResponse registrarPago(RegistrarPagoRequest req, Long usuarioId) {
@@ -48,7 +47,8 @@ public class PagoService {
 
         // 2. Validar caja si es pago presencial
         CajaSesion cajaSesion = null;
-        if (!"ONLINE_SIMULADO".equals(req.getMedio())) {
+        boolean esOnline = "ONLINE_SIMULADO".equals(req.getMedio()) || "MERCADO_PAGO".equals(req.getMedio());
+        if (!esOnline) {
             cajaSesion = cajaSesionRepository.findFirstByCajeroUsuarioIdAndEstado(usuarioId, "ABIERTA")
                 .orElseThrow(() -> new BusinessRuleException("Debe tener una caja ABIERTA para registrar cobros presenciales."));
         }
@@ -73,11 +73,6 @@ public class PagoService {
             if (detReq.getMontoAplicado().compareTo(cuota.getSaldo()) > 0) {
                 throw new BusinessRuleException(String.format("El monto a pagar (S/ %.2f) supera el saldo de la cuota %d (S/ %.2f).",
                     detReq.getMontoAplicado(), cuota.getId(), cuota.getSaldo()));
-            }
-            // Un descuento de matrícula en revisión cambia lo que se debe: no se cobra hasta que la secretaría responda.
-            if ("MATRICULA".equals(cuota.getConcepto().getTipo()) && cuota.getMatricula() != null
-                && solicitudesDescuento.existsByMatriculaIdAndEstado(cuota.getMatricula().getMatriculaId(), SolicitudDescuento.PENDIENTE)) {
-                throw new BusinessRuleException(MatriculaPagoService.MOTIVO_EN_REVISION);
             }
 
             sumaAplicada = sumaAplicada.add(detReq.getMontoAplicado());
@@ -153,209 +148,7 @@ public class PagoService {
         return toResponse(pagoGuardado, comprobante);
     }
 
-    // ------------------------------------------------------------------
-    // Pagos de apoderados: quedan por aprobar hasta que caja los apruebe
-    // ------------------------------------------------------------------
-
-    /**
-     * El apoderado informa su pago en línea. NO toca las cuotas ni emite comprobante: queda PENDIENTE y caja lo aprueba
-     * (se confirma y se emite el comprobante) o lo rechaza con un motivo.
-     */
-    @Transactional
-    public PagoResponse solicitarPagoOnline(RegistrarPagoRequest req, Long apoderadoUsuarioId) {
-        Optional<Pago> existente = pagoRepository.findByIdempotencyKey(req.getIdempotencyKey());
-        if (existente.isPresent()) {
-            return toResponse(existente.get());
-        }
-
-        BigDecimal suma = BigDecimal.ZERO;
-        List<Cuota> cuotas = new ArrayList<>();
-        for (PagoDetalleRequest det : req.getDetalles()) {
-            Cuota cuota = cuotaRepository.findById(det.getCuotaId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cuota no encontrada: " + det.getCuotaId()));
-            if (!List.of("PENDIENTE", "PARCIAL", "VENCIDA").contains(cuota.getEstado())) {
-                throw new BusinessRuleException(String.format("La cuota %d está en estado %s y no admite pagos.", cuota.getId(), cuota.getEstado()));
-            }
-            if (det.getMontoAplicado().compareTo(cuota.getSaldo()) > 0) {
-                throw new BusinessRuleException(String.format("El monto a pagar (S/ %.2f) supera el saldo de la cuota %d (S/ %.2f).",
-                    det.getMontoAplicado(), cuota.getId(), cuota.getSaldo()));
-            }
-            if ("MATRICULA".equals(cuota.getConcepto().getTipo())) {
-                throw new BusinessRuleException("La matrícula se paga con su orden de pago (Pagos → «Pagar lo que falta»), no como una cuota suelta.");
-            }
-            if (pagoDetalleRepository.existsByCuotaIdAndPagoEstado(cuota.getId(), "PENDIENTE")) {
-                throw new BusinessRuleException(String.format("La cuota %d ya tiene un pago en revisión en caja.", cuota.getId()));
-            }
-            suma = suma.add(det.getMontoAplicado());
-            cuotas.add(cuota);
-        }
-        if (suma.compareTo(req.getMontoTotal()) != 0) {
-            throw new BusinessRuleException(String.format("La suma de los montos aplicados (S/ %.2f) no coincide con el total del pago (S/ %.2f).",
-                suma, req.getMontoTotal()));
-        }
-
-        Pago pago = pagoRepository.save(Pago.builder()
-            .alumnoId(req.getAlumnoId())
-            .pagadorNombre(req.getPagadorNombre())
-            .pagadorDocumento(req.getPagadorDocumento())
-            .montoTotal(req.getMontoTotal())
-            .medio(req.getMedio())
-            .referencia(req.getReferencia())
-            .estado("PENDIENTE")
-            .tipoComprobante(req.getTipoComprobante())
-            .registradoPor(apoderadoUsuarioId)
-            .pagadoEn(LocalDateTime.now())
-            .idempotencyKey(req.getIdempotencyKey())
-            .build());
-
-        List<PagoDetalle> detalles = new ArrayList<>();
-        for (int i = 0; i < cuotas.size(); i++) {
-            detalles.add(pagoDetalleRepository.save(PagoDetalle.builder()
-                .pago(pago).cuota(cuotas.get(i)).montoAplicado(req.getDetalles().get(i).getMontoAplicado()).build()));
-        }
-        pago.setDetalles(detalles);
-        log.info("Pago {} del apoderado {} queda por aprobar en caja (S/ {}).", pago.getId(), apoderadoUsuarioId, pago.getMontoTotal());
-        return toResponse(pago);
-    }
-
-    /** Caja (o el administrador) aprueba: aplica los montos a las cuotas, emite el comprobante y avisa como cualquier pago confirmado. */
-    @Transactional
-    public PagoResponse aprobar(Long pagoId, Long usuarioId) {
-        Pago pago = pagoPendiente(pagoId);
-        if (MERCADOPAGO.equals(pago.getMedio()) && usuarioId != null) {
-            throw new BusinessRuleException("Este pago lo confirma Mercado Pago: no se aprueba a mano.");
-        }
-
-        Long matriculaId = null;
-        String tipoPrincipal = "OTRO";
-        String nombrePrincipal = "Cobro educativo";
-        List<Long> cuotaIds = new ArrayList<>();
-        for (PagoDetalle det : pago.getDetalles()) {
-            Cuota cuota = det.getCuota();
-            if (!List.of("PENDIENTE", "PARCIAL", "VENCIDA").contains(cuota.getEstado())
-                || det.getMontoAplicado().compareTo(cuota.getSaldo()) > 0) {
-                throw new BusinessRuleException(String.format(
-                    "La cuota %d ya no admite este monto (¿se pagó en ventanilla?). Rechaza el pago indicando el motivo.", cuota.getId()));
-            }
-            BigDecimal nuevoSaldo = cuota.getSaldo().subtract(det.getMontoAplicado());
-            cuota.setSaldo(nuevoSaldo);
-            cuota.setEstado(nuevoSaldo.compareTo(BigDecimal.ZERO) == 0 ? "PAGADA" : "PARCIAL");
-            cuota.setActualizadaEn(LocalDateTime.now());
-            cuotaRepository.save(cuota);
-            cuotaIds.add(cuota.getId());
-
-            if (matriculaId == null && cuota.getMatricula() != null) {
-                matriculaId = cuota.getMatricula().getMatriculaId();
-            }
-            if ("MATRICULA".equals(cuota.getConcepto().getTipo())) {
-                tipoPrincipal = "MATRICULA";
-                nombrePrincipal = "MATRICULA";
-            } else if ("PENSION".equals(cuota.getConcepto().getTipo()) && !"MATRICULA".equals(tipoPrincipal)) {
-                tipoPrincipal = "PENSION";
-                nombrePrincipal = "PENSION";
-            }
-        }
-
-        pago.setEstado("CONFIRMADO");
-        pago.setAprobadoPor(usuarioId);
-        pago.setAprobadoEn(LocalDateTime.now());
-        pagoRepository.save(pago);
-
-        Comprobante comprobante = comprobanteService.emitirComprobante(pago, pago.getTipoComprobante() != null ? pago.getTipoComprobante() : "RECIBO");
-        crearOutboxPagoConfirmado(pago, matriculaId, cuotaIds, tipoPrincipal, nombrePrincipal);
-        log.info("Pago {} aprobado por el usuario {}.", pagoId, usuarioId);
-        return toResponse(pago, comprobante);
-    }
-
-    /** Rechaza el pago de un apoderado: las cuotas siguen pendientes y el apoderado ve el motivo. */
-    @Transactional
-    public PagoResponse rechazar(Long pagoId, String motivo, Long usuarioId) {
-        Pago pago = pagoPendiente(pagoId);
-        if (MERCADOPAGO.equals(pago.getMedio()) && usuarioId != null) {
-            throw new BusinessRuleException("Este pago lo rechaza Mercado Pago: no se rechaza a mano.");
-        }
-        pago.setEstado("RECHAZADO");
-        pago.setMotivoRechazo(motivo);
-        pago.setAprobadoPor(usuarioId);
-        pago.setAprobadoEn(LocalDateTime.now());
-        pagoRepository.save(pago);
-        log.info("Pago {} rechazado por el usuario {}: {}", pagoId, usuarioId, motivo);
-        return toResponse(pago);
-    }
-
-    /**
-     * Mercado Pago aprobó el pago de un apoderado (aviso verificado en el API). Idempotente. Si el monto no coincide o la cuota ya no admite el
-     * pago, NO se aplica: queda rechazado con motivo para devolverlo, y se registra una alerta. Se valida todo ANTES de tocar las cuotas.
-     */
-    @Transactional
-    public void confirmarPorPasarela(Long pagoId, BigDecimal montoInformado) {
-        Pago pago = pagoRepository.findById(pagoId).orElseThrow(() -> new ResourceNotFoundException("Pago no encontrado: " + pagoId));
-        if (!"PENDIENTE".equals(pago.getEstado())) {
-            log.warn("Aprobación de Mercado Pago para el pago {} que ya está {}: no se aplica de nuevo.", pagoId, pago.getEstado());
-            return;
-        }
-        if (montoInformado == null || montoInformado.compareTo(pago.getMontoTotal()) != 0) {
-            pago.setEstado("RECHAZADO");
-            pago.setMotivoRechazo("El monto cobrado no coincide con el pago. Se revisará la devolución.");
-            pagoRepository.save(pago);
-            log.error("ALERTA: Mercado Pago cobró S/ {} para el pago {} que es por S/ {}.", montoInformado, pagoId, pago.getMontoTotal());
-            return;
-        }
-        for (PagoDetalle det : pago.getDetalles()) {
-            Cuota cuota = det.getCuota();
-            if (!List.of("PENDIENTE", "PARCIAL", "VENCIDA").contains(cuota.getEstado()) || det.getMontoAplicado().compareTo(cuota.getSaldo()) > 0) {
-                pago.setEstado("RECHAZADO");
-                pago.setMotivoRechazo("Una cuota ya no admite este pago (¿se pagó en ventanilla?). Se revisará la devolución.");
-                pagoRepository.save(pago);
-                log.error("ALERTA: el pago {} cobrado por Mercado Pago ya no encaja con la cuota {}. Revisión y devolución.", pagoId, cuota.getId());
-                return;
-            }
-        }
-        aprobar(pagoId, null);   // usuario null = la aprobación la hizo el sistema con el aviso de la pasarela
-        log.info("Pago {} confirmado por Mercado Pago.", pagoId);
-    }
-
-    /** Mercado Pago rechazó o canceló el pago: el apoderado ve el motivo y las cuotas siguen pendientes. */
-    @Transactional
-    public void rechazarPorPasarela(Long pagoId, String motivo) {
-        Pago pago = pagoRepository.findById(pagoId).orElseThrow(() -> new ResourceNotFoundException("Pago no encontrado: " + pagoId));
-        if (!"PENDIENTE".equals(pago.getEstado())) return;
-        pago.setEstado("RECHAZADO");
-        pago.setMotivoRechazo(motivo);
-        pagoRepository.save(pago);
-        log.info("Pago {} rechazado por Mercado Pago: {}", pagoId, motivo);
-    }
-
-    @Transactional(readOnly = true)
-    public List<PagoResponse> porAprobar() {
-        // Los de Mercado Pago los confirma la pasarela: caja no los aprueba a mano.
-        return pagoRepository.findByEstadoOrderByPagadoEnAsc("PENDIENTE").stream()
-            .filter(p -> !MERCADOPAGO.equals(p.getMedio())).map(this::toResponse).toList();
-    }
-
-    @Transactional(readOnly = true)
-    public long contarPorAprobar() {
-        return pagoRepository.findByEstadoOrderByPagadoEnAsc("PENDIENTE").stream().filter(p -> !MERCADOPAGO.equals(p.getMedio())).count();
-    }
-
-    /** Lo que un apoderado pagó y sigue en revisión, o fue rechazado (con su motivo). */
-    @Transactional(readOnly = true)
-    public List<PagoResponse> pendientesDelApoderado(Long apoderadoUsuarioId) {
-        return pagoRepository.findTop20ByRegistradoPorAndEstadoInOrderByPagadoEnDesc(apoderadoUsuarioId, List.of("PENDIENTE", "RECHAZADO"))
-            .stream().map(this::toResponse).toList();
-    }
-
-    private Pago pagoPendiente(Long pagoId) {
-        Pago pago = pagoRepository.findById(pagoId)
-            .orElseThrow(() -> new ResourceNotFoundException("Pago no encontrado: " + pagoId));
-        if (!"PENDIENTE".equals(pago.getEstado())) {
-            throw new BusinessRuleException("Este pago ya no está por aprobar (estado: " + pago.getEstado() + ").");
-        }
-        return pago;
-    }
-
-    /** Visible para el servicio de crédito (mismo paquete): un cobro con crédito avisa igual que cualquier otro pago confirmado. */
-    void crearOutboxPagoConfirmado(Pago pago, Long matriculaId, List<Long> cuotaIds, String conceptoTipo, String concepto) {
+    private void crearOutboxPagoConfirmado(Pago pago, Long matriculaId, List<Long> cuotaIds, String conceptoTipo, String concepto) {
         try {
             UUID eventId = UUID.randomUUID();
             String traceId = MDC.get("traceId");
@@ -421,46 +214,11 @@ public class PagoService {
     public PagoResponse toResponse(Pago p) {
         // Solo consulta: nunca emite comprobantes (evita consumir correlativos en lecturas)
         Comprobante c = p.getId() != null ? comprobanteService.buscarPorPago(p.getId()).orElse(null) : null;
-        return toResponse(p, c);
+        return pagoMapper.toResponse(p, c);
     }
 
     public PagoResponse toResponse(Pago p, Comprobante c) {
-        List<PagoResponse.PagoDetalleResponse> detResponses = new ArrayList<>();
-        if (p.getDetalles() != null) {
-            for (PagoDetalle d : p.getDetalles()) {
-                detResponses.add(PagoResponse.PagoDetalleResponse.builder()
-                    .id(d.getId())
-                    .cuotaId(d.getCuota().getId())
-                    .cuotaDescripcion(d.getCuota().getDescripcion())
-                    .montoAplicado(d.getMontoAplicado())
-                    .nuevoSaldoCuota(d.getCuota().getSaldo())
-                    .nuevoEstadoCuota(d.getCuota().getEstado())
-                    .build());
-            }
-        }
-
-        ComprobanteResponse compResp = null;
-        if (c != null) {
-            compResp = comprobanteService.toResponse(c);
-        }
-
-        return PagoResponse.builder()
-            .id(p.getId())
-            .alumnoId(p.getAlumnoId())
-            .pagadorNombre(p.getPagadorNombre())
-            .pagadorDocumento(p.getPagadorDocumento())
-            .montoTotal(p.getMontoTotal())
-            .medio(p.getMedio())
-            .referencia(p.getReferencia())
-            .estado(p.getEstado())
-            .cajaSesionId(p.getCajaSesion() != null ? p.getCajaSesion().getId() : null)
-            .registradoPor(p.getRegistradoPor())
-            .pagadoEn(p.getPagadoEn())
-            .aprobadoEn(p.getAprobadoEn())
-            .motivoRechazo(p.getMotivoRechazo())
-            .idempotencyKey(p.getIdempotencyKey())
-            .comprobante(compResp)
-            .detalles(detResponses)
-            .build();
+        return pagoMapper.toResponse(p, c);
     }
 }
+

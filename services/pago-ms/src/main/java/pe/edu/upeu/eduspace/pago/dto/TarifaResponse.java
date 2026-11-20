@@ -21,3 +21,4 @@ public class TarifaResponse {
     private Short diaVencimiento;
     private Boolean activo;
 }
+

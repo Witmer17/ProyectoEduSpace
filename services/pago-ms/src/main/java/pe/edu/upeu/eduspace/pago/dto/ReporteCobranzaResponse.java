@@ -18,3 +18,4 @@ public class ReporteCobranzaResponse {
     private Map<String, BigDecimal> totalPorMedio;
     private List<PagoResponse> pagos;
 }
+

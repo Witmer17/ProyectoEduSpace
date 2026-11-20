@@ -33,3 +33,4 @@ public interface TarifaRepository extends JpaRepository<Tarifa, Long> {
         return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
 }
+

@@ -39,18 +39,16 @@ public class MatriculaLocal {
     @Column(name = "estado", nullable = false, length = 15)
     private String estado;
 
-    /** Forma de pago de las pensiones acordada al matricular (MENSUAL, BIMESTRAL, SEMESTRAL o ANUAL). */
-    @Column(name = "plan_pago", nullable = false, length = 12)
-    @Builder.Default
-    private String planPago = "MENSUAL";
-
     @Column(name = "responsable_usuario_id")
     private Long responsableUsuarioId;
 
     @Column(name = "responsable_nombre", length = 220)
     private String responsableNombre;
 
+
+    // evento de cuanto se iso la ultima actualizacion del estudiante
     @Column(name = "actualizado_en", nullable = false)
     @Builder.Default
     private LocalDateTime actualizadoEn = LocalDateTime.now();
 }
+

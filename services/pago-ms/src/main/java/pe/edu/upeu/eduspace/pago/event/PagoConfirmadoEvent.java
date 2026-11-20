@@ -22,3 +22,4 @@ public class PagoConfirmadoEvent {
     private BigDecimal monto;
     private String concepto;
 }
+

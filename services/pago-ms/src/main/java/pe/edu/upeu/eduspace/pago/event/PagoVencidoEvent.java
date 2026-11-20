@@ -22,3 +22,4 @@ public class PagoVencidoEvent {
     private BigDecimal saldo;
     private LocalDate fechaVencimiento;
 }
+

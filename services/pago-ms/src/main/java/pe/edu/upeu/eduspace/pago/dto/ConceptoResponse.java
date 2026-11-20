@@ -12,3 +12,4 @@ public class ConceptoResponse {
     private String tipo;
     private Boolean activo;
 }
+

@@ -24,8 +24,8 @@ public class RegistrarPagoRequest {
     private BigDecimal montoTotal;
 
     @NotBlank(message = "El medio de pago es obligatorio")
-    @Pattern(regexp = "EFECTIVO|TARJETA|YAPE_PLIN|TRANSFERENCIA|ONLINE_SIMULADO|MERCADOPAGO",
-             message = "Medio debe ser EFECTIVO, TARJETA, YAPE_PLIN, TRANSFERENCIA u ONLINE_SIMULADO")
+    @Pattern(regexp = "EFECTIVO|TARJETA|YAPE_PLIN|TRANSFERENCIA|ONLINE_SIMULADO|MERCADO_PAGO",
+             message = "Medio debe ser EFECTIVO, TARJETA, YAPE_PLIN, TRANSFERENCIA, ONLINE_SIMULADO o MERCADO_PAGO")
     private String medio;
 
     @Size(max = 80)
@@ -42,3 +42,4 @@ public class RegistrarPagoRequest {
     @Valid
     private List<PagoDetalleRequest> detalles;
 }
+

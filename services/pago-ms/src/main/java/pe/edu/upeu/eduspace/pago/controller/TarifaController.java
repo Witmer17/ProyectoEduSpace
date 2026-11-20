@@ -45,3 +45,4 @@ public class TarifaController {
         return ResponseEntity.ok(tarifaService.actualizar(id, req));
     }
 }
+
