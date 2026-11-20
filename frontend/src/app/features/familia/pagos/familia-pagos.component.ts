@@ -162,32 +162,51 @@ export class FamiliaPagosComponent implements OnInit {
   }
 
   protected pagar(): void {
+    this.pagarSimulado();
+  }
+
+  protected pagarSimulado(): void {
     const h = this.ctx.seleccionado();
     if (!h) return;
     const detalles = this.pagables().filter(c => this.elegidas().has(c.id)).map(c => ({ cuotaId: c.id, montoAplicado: c.saldo }));
     const cuerpo = { alumnoId: h.alumnoId, montoTotal: detalles.reduce((s, d) => s + d.montoAplicado, 0), medio: 'ONLINE_SIMULADO' as const, idempotencyKey: this.claveIntento, detalles };
     this.pagando.set(true);
     this.errorPago.set(null);
-    if (this.pasarelaReal()) {
-      // Mercado Pago: el apoderado paga en su pantalla. La confirmación llega por el aviso verificado del servidor.
-      this.api.pagarOnlineMercadoPago({ ...cuerpo, medio: 'MERCADOPAGO' }).subscribe({
-        next: r => { window.location.assign(r.redireccion); },
-        error: e => { this.pagando.set(false); this.errorPago.set(mensajeError(e, 'No se pudo iniciar el pago con Mercado Pago.')); }
-      });
-      return;
-    }
     this.api
       .pagarOnline(cuerpo)
       .subscribe({
         next: p => {
           this.pagando.set(false);
           this.recibo.set(p);
-          this.avisos.success('Pago enviado. Caja lo revisa y te llegará el comprobante al aprobarlo.');
+          this.avisos.success('Pago de prueba simulado con éxito. Cuota liquidada.');
         },
         error: e => {
           this.pagando.set(false);
-          this.errorPago.set(mensajeError(e, 'No se pudo procesar el pago.'));
+          this.errorPago.set(mensajeError(e, 'No se pudo procesar el pago simulado.'));
         }
       });
+  }
+
+  protected pagarMercadoPago(): void {
+    const h = this.ctx.seleccionado();
+    if (!h) return;
+    const detalles = this.pagables().filter(c => this.elegidas().has(c.id)).map(c => ({ cuotaId: c.id, montoAplicado: c.saldo }));
+    const cuerpo = { alumnoId: h.alumnoId, montoTotal: detalles.reduce((s, d) => s + d.montoAplicado, 0), medio: 'MERCADOPAGO' as const, idempotencyKey: this.claveIntento, detalles };
+    this.pagando.set(true);
+    this.errorPago.set(null);
+    this.api.pagarOnlineMercadoPago(cuerpo).subscribe({
+      next: (r: { redireccion: string }) => {
+        if (r?.redireccion) {
+          window.location.assign(r.redireccion);
+        } else {
+          this.pagando.set(false);
+          this.errorPago.set('No se obtuvo el enlace de redirección de Mercado Pago.');
+        }
+      },
+      error: (e: unknown) => {
+        this.pagando.set(false);
+        this.errorPago.set(mensajeError(e, 'No se pudo iniciar el pago con Mercado Pago.'));
+      }
+    });
   }
 }
