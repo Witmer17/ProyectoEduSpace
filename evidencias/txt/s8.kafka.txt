@@ -1,0 +1,6 @@
+# Kafka: contenedor y tópicos  [s8.kafka]
+# Fecha y hora: 2026-11-19 20:21:35   Usuario: hrems-dev@fedora   Proyecto: eduspacePRACTICA
+# Resultado: CORRECTO
+
+✔ e2e-kafka  (docker.io/apache/kafka:4.3.1) · Up 6 hours
+   tópicos (43): alumno.estado-cambiado, alumno.registrado, anio.activado, asistencia.falta-registrada, asistencia.falta-registrada.DLT, boletin.generado, boletin.generado.DLT, examen.calificado, examen.calificado.DLT, examen.publicado, examen.publicado.DLT, horario.publicado, horario.publicado.DLT, justificacion.resuelta, justificacion.resuelta.DLT, material.publicado, material.publicado.DLT, matricula.anulada, matricula.anulada.DLT, matricula.confirmada, matricula.confirmada.DLT, matricula.creada, matricula.creada.DLT, matricula.retirada, matricula.retirada.DLT, matricula.trasladada, matricula.trasladada.DLT, pago.anulado, pago.anulado.DLT, pago.confirmado, pago.confirmado.DLT, pago.por-vencer, pago.por-vencer.DLT, pago.vencido, pago.vencido.DLT, periodo.cambiado, tarea.calificada, tarea.calificada.DLT, tarea.entregada, tarea.publicada, tarea.publicada.DLT, tarea.recordatorio, tarea.recordatorio.DLT

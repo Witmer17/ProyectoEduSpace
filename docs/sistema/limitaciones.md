@@ -22,7 +22,7 @@ Priorización: **P1** antes de PROD · **P2** próxima iteración · **P3** fase
 | 15 | Salud: «solo tutor y docentes de la sección» | P2 | alumnos-ms debe consultar a matrícula |
 | 16 | Apoderado sin cuenta no recibe avisos | P3 | Cambiar `usuario_id` NOT NULL y definir canal/consentimiento |
 | 17 | Push, SMS y WhatsApp | P3 | `LogPushSender`; falta proveedor |
-| 18 | Pasarela de pago real y comprobante SUNAT | P3 | Simulado (también en la matrícula en línea); comprobantes internos |
+| 18 | Pasarela de pago real y comprobante SUNAT | P3 | Mercado Pago (Checkout Pro) activo para el pago de la matrícula en pago-ms (ver `docs/sistema/pasarela-mercadopago.md`). Pendiente: pensiones en línea del apoderado, la matrícula en línea del sitio público, comprobante SUNAT (comprobantes internos) |
 | 18a | La aprobación de matrícula no exige expediente completo y el rechazo no devuelve el dinero automáticamente (se devuelve desde Finanzas); para matrículas presenciales no se envía correo de acceso (las cuentas las crea secretaría) | P2 | Exigir requisitos según política; reembolso automático; correo de acceso también para matrículas presenciales |
 | 18c | Caja no aprueba los pagos en línea: la matrícula depende solo de la aprobación del administrador | P2 | Estado de pago «por verificar» y aprobación en Caja (ver `docs/10-avance-2026-10-30.md` §11) |
 | 18d | La app móvil no ingresa con Keycloak y el modo `keycloak-form` usa credenciales directas (solo DEV) | P2 | Exponer Keycloak al móvil; en PROD, `keycloak` con HTTPS |

@@ -1,0 +1,28 @@
+# Registro de servicios e instancias (Eureka)  [s3.eureka]
+# Fecha y hora: 2026-11-19 20:21:29   Usuario: hrems-dev@fedora   Proyecto: eduspacePRACTICA
+# Resultado: CORRECTO
+
+PLANIFICACION-MS
+   ✔ UP    100.71.203.21:8091   planificacion-ms:8091
+ALUMNOS-MS
+   ✔ UP    100.71.203.21:8092   alumnos-ms:8092
+MATRICULA-MS
+   ✔ UP    100.71.203.21:8093   matricula-ms:8093
+CALIFICACIONES-MS
+   ✔ UP    100.71.203.21:8095   calificaciones-ms:8095
+PAGO-MS
+   ✔ UP    100.71.203.21:8096   pago-ms:8096
+EDUSPACE-GATEWAY
+   ✔ UP    100.71.203.21:18080   eduspace-gateway:18080
+EXAMENES-MS
+   ✔ UP    100.71.203.21:8097   examenes-ms:8097
+AUTH-MS
+   ✔ UP    100.71.203.21:8090   auth-ms:8090
+TAREAS-MS
+   ✔ UP    100.71.203.21:8098   tareas-ms:8098
+ASISTENCIA-MS
+   ✔ UP    100.71.203.21:8094   asistencia-ms:8094
+NOTIFICACIONES-MS
+   ✔ UP    100.71.203.21:8099   notificaciones-ms:8099
+
+11 aplicaciones registradas · 0 con 2 o más instancias · 0 no UP

@@ -93,14 +93,20 @@ export class ShellComponent {
   protected readonly barraSuperior = computed(() => this.esAula() || this.esPersonal());
 
   /**
-   * Opciones de la barra del personal: Inicio, Personal (personas contratadas, su pago y asistencia, cuentas y roles), Configuración (información del colegio)
-   * y Apertura de periodo (todo lo necesario para abrir un año escolar).
-   * Las demás pantallas siguen existiendo (Ctrl+K y sus rutas); se irán ubicando en el nuevo diseño.
+   * Opciones de la barra del personal: Inicio, Alumnos, Matrícula, Horarios, Personal, Configuración y Apertura.
+   * Las demás pantallas siguen existiendo (Ctrl+K y sus rutas); al abrirlas llevan su menú vertical.
    */
   protected readonly navPersonal = computed(() => {
     const todos = this.menu().flatMap(g => g.items);
-    return [todos.find(i => i.ruta === '/inicio'), todos.find(i => i.hub === 'personal'), todos.find(i => i.hub === 'configuracion'), todos.find(i => i.hub === 'apertura')]
-      .filter((i): i is NonNullable<typeof i> => !!i);
+    return [
+      todos.find(i => i.ruta === '/inicio' || i.ruta === '/secretaria'),
+      todos.find(i => i.hub === 'alumnos'),
+      todos.find(i => i.hub === 'matricula'),
+      todos.find(i => i.hub === 'horarios'),   // armado automático, horario por sección y aulas libres
+      todos.find(i => i.hub === 'personal'),
+      todos.find(i => i.hub === 'configuracion'),
+      todos.find(i => i.hub === 'apertura')
+    ].filter((i): i is NonNullable<typeof i> => !!i);
   });
 
   /** Enlaces de la barra superior según quién sea la persona. */

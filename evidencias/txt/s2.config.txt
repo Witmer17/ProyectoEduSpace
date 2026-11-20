@@ -1,0 +1,104 @@
+# Config Server: configuración DEV y PROD  [s2.config]
+# Fecha y hora: 2026-11-19 20:21:29   Usuario: hrems-dev@fedora   Proyecto: eduspacePRACTICA
+# Resultado: CORRECTO
+
+✔ GET /alumnos-ms/dev  →  HTTP 200 · 1 fuentes · 31 propiedades
+✔ GET /alumnos-ms/prod  →  HTTP 200 · 1 fuentes · 30 propiedades
+   diferencias DEV ↔ PROD:
+     server.port: 8092  ↔  8080
+     spring.datasource.url: jdbc:postgresql://localhost:15442/alumnos_db  ↔  jdbc:postgresql://alumnos-ms-db:5432/alumnos_db
+     spring.datasource.username: ${DB_USER:eduspace}  ↔  ${DB_USER}
+     spring.kafka.bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:19092}  ↔  ${KAFKA_BOOTSTRAP:kafka:9092}
+     spring.security.oauth2.resourceserver.jwt.jwk-set-uri: ${JWK_SET_URI:http://localhost:18090/realms/eduspace/protocol/openid-connect/certs}  ↔  ${JWK_SET_URI:http://auth-ms:8080/.well-known/jwks.json}
+     eureka.client.registry-fetch-interval-seconds: 5  ↔  —
+
+✔ GET /asistencia-ms/dev  →  HTTP 200 · 1 fuentes · 12 propiedades
+✔ GET /asistencia-ms/prod  →  HTTP 200 · 1 fuentes · 8 propiedades
+   diferencias DEV ↔ PROD:
+     server.port: 8094  ↔  8080
+     spring.datasource.url: jdbc:postgresql://localhost:15444/asistencia_db  ↔  jdbc:postgresql://asistencia-ms-db:5432/asistencia_db
+     spring.datasource.username: ${DB_USER:eduspace}  ↔  ${DB_USER}
+     spring.kafka.bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:19092}  ↔  —
+     spring.security.oauth2.resourceserver.jwt.jwk-set-uri: ${JWK_SET_URI:http://localhost:18090/realms/eduspace/protocol/openid-connect/certs}  ↔  —
+     eureka.client.registry-fetch-interval-seconds: 5  ↔  —
+
+✔ GET /auth-ms/dev  →  HTTP 200 · 1 fuentes · 21 propiedades
+✔ GET /auth-ms/prod  →  HTTP 200 · 1 fuentes · 8 propiedades
+   diferencias DEV ↔ PROD:
+     server.port: 8090  ↔  8080
+     spring.datasource.url: jdbc:postgresql://localhost:15440/auth_db  ↔  jdbc:postgresql://auth-ms-db:5432/auth_db
+     spring.datasource.username: ${DB_USER:eduspace}  ↔  ${DB_USER}
+     app.auth.issuer: http://localhost:8090  ↔  —
+     app.auth.access-token-minutos: 30  ↔  —
+     app.auth.refresh-token-dias: 7  ↔  —
+
+✔ GET /calificaciones-ms/dev  →  HTTP 200 · 1 fuentes · 12 propiedades
+✔ GET /calificaciones-ms/prod  →  HTTP 200 · 1 fuentes · 8 propiedades
+   diferencias DEV ↔ PROD:
+     server.port: 8095  ↔  8080
+     spring.datasource.url: jdbc:postgresql://localhost:15445/calificaciones_db  ↔  jdbc:postgresql://calificaciones-ms-db:5432/calificaciones_db
+     spring.datasource.username: ${DB_USER:eduspace}  ↔  ${DB_USER}
+     spring.kafka.bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:19092}  ↔  —
+     spring.security.oauth2.resourceserver.jwt.jwk-set-uri: ${JWK_SET_URI:http://localhost:18090/realms/eduspace/protocol/openid-connect/certs}  ↔  —
+     eureka.client.registry-fetch-interval-seconds: 5  ↔  —
+
+✔ GET /examenes-ms/dev  →  HTTP 200 · 1 fuentes · 12 propiedades
+✔ GET /examenes-ms/prod  →  HTTP 200 · 1 fuentes · 8 propiedades
+   diferencias DEV ↔ PROD:
+     server.port: 8097  ↔  8080
+     spring.datasource.url: jdbc:postgresql://localhost:15447/examenes_db  ↔  jdbc:postgresql://examenes-ms-db:5432/examenes_db
+     spring.datasource.username: ${DB_USER:eduspace}  ↔  ${DB_USER}
+     spring.kafka.bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:19092}  ↔  —
+     spring.security.oauth2.resourceserver.jwt.jwk-set-uri: ${JWK_SET_URI:http://localhost:18090/realms/eduspace/protocol/openid-connect/certs}  ↔  —
+     eureka.client.registry-fetch-interval-seconds: 5  ↔  —
+
+✔ GET /matricula-ms/dev  →  HTTP 200 · 1 fuentes · 12 propiedades
+✔ GET /matricula-ms/prod  →  HTTP 200 · 1 fuentes · 8 propiedades
+   diferencias DEV ↔ PROD:
+     server.port: 8093  ↔  8080
+     spring.datasource.url: jdbc:postgresql://localhost:15443/matricula_db  ↔  jdbc:postgresql://matricula-ms-db:5432/matricula_db
+     spring.datasource.username: ${DB_USER:eduspace}  ↔  ${DB_USER}
+     spring.kafka.bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:19092}  ↔  —
+     spring.security.oauth2.resourceserver.jwt.jwk-set-uri: ${JWK_SET_URI:http://localhost:18090/realms/eduspace/protocol/openid-connect/certs}  ↔  —
+     eureka.client.registry-fetch-interval-seconds: 5  ↔  —
+
+✔ GET /notificaciones-ms/dev  →  HTTP 200 · 1 fuentes · 37 propiedades
+✔ GET /notificaciones-ms/prod  →  HTTP 200 · 1 fuentes · 40 propiedades
+   diferencias DEV ↔ PROD:
+     server.port: 8099  ↔  8080
+     spring.datasource.url: jdbc:postgresql://localhost:15449/notificaciones_db  ↔  jdbc:postgresql://notificaciones-ms-db:5432/notificaciones_db
+     spring.datasource.username: ${DB_USER:eduspace}  ↔  ${DB_USER}
+     spring.kafka.bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:19092}  ↔  ${KAFKA_BOOTSTRAP:kafka:9092}
+     spring.security.oauth2.resourceserver.jwt.jwk-set-uri: ${JWK_SET_URI:http://localhost:18090/realms/eduspace/protocol/openid-connect/certs}  ↔  ${JWK_SET_URI:http://auth-ms:8080/.well-known/jwks.json}
+     spring.mail.host: ${SMTP_HOST:localhost}  ↔  ${SMTP_HOST}
+
+✔ GET /pago-ms/dev  →  HTTP 200 · 1 fuentes · 12 propiedades
+✔ GET /pago-ms/prod  →  HTTP 200 · 1 fuentes · 8 propiedades
+   diferencias DEV ↔ PROD:
+     server.port: 8096  ↔  8080
+     spring.datasource.url: jdbc:postgresql://localhost:15446/pago_db  ↔  jdbc:postgresql://pago-ms-db:5432/pago_db
+     spring.datasource.username: ${DB_USER:eduspace}  ↔  ${DB_USER}
+     spring.kafka.bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:19092}  ↔  —
+     spring.security.oauth2.resourceserver.jwt.jwk-set-uri: ${JWK_SET_URI:http://localhost:18090/realms/eduspace/protocol/openid-connect/certs}  ↔  —
+     eureka.client.registry-fetch-interval-seconds: 5  ↔  —
+
+✔ GET /planificacion-ms/dev  →  HTTP 200 · 1 fuentes · 21 propiedades
+✔ GET /planificacion-ms/prod  →  HTTP 200 · 1 fuentes · 20 propiedades
+   diferencias DEV ↔ PROD:
+     server.port: 8091  ↔  8080
+     spring.datasource.url: jdbc:postgresql://localhost:15441/planificacion_db  ↔  jdbc:postgresql://planificacion-ms-db:5432/planificacion_db
+     spring.datasource.username: ${DB_USER:eduspace}  ↔  ${DB_USER}
+     spring.kafka.bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:19092}  ↔  ${KAFKA_BOOTSTRAP:kafka:9092}
+     spring.security.oauth2.resourceserver.jwt.jwk-set-uri: ${JWK_SET_URI:http://localhost:18090/realms/eduspace/protocol/openid-connect/certs}  ↔  ${JWK_SET_URI:http://auth-ms:8080/.well-known/jwks.json}
+     eureka.client.registry-fetch-interval-seconds: 5  ↔  —
+
+✔ GET /tareas-ms/dev  →  HTTP 200 · 1 fuentes · 12 propiedades
+✔ GET /tareas-ms/prod  →  HTTP 200 · 1 fuentes · 8 propiedades
+   diferencias DEV ↔ PROD:
+     server.port: 8098  ↔  8080
+     spring.datasource.url: jdbc:postgresql://localhost:15448/tareas_db  ↔  jdbc:postgresql://tareas-ms-db:5432/tareas_db
+     spring.datasource.username: ${DB_USER:eduspace}  ↔  ${DB_USER}
+     spring.kafka.bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:19092}  ↔  —
+     spring.security.oauth2.resourceserver.jwt.jwk-set-uri: ${JWK_SET_URI:http://localhost:18090/realms/eduspace/protocol/openid-connect/certs}  ↔  —
+     eureka.client.registry-fetch-interval-seconds: 5  ↔  —
+
