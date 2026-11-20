@@ -1,5 +1,8 @@
 server:
   port: 18080
+  # DEV: el Gateway se expone por túnel (Cloudflare → ng serve → Gateway). Con «framework», la IP del cliente sale de X-Forwarded-For
+  # y el límite de peticiones (RateLimitFilter) cuenta por usuario real y no por la IP del túnel, que es la misma para todos.
+  forward-headers-strategy: framework
 
 spring:
   application:
@@ -71,12 +74,14 @@ eduspace:
   gateway:
     cors:
       # DEV: la web también se abre desde otros equipos de la red local, por IP o por nombre del equipo (http://<host>:4200); en PROD el valor es obligatorio y exacto.
-      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200,http://localhost:5000,http://*:4200}
+      # Incluye los enlaces temporales de Cloudflare (https://<nombre>.trycloudflare.com): el navegador manda Origin con ese dominio y, si no está aquí, el gateway responde 403 a los POST.
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200,http://localhost:5000,http://*:4200,https://*.trycloudflare.com}
     actuator-public: true     # DEV: Prometheus local raspa sin token
     rate-limit:
       enabled: true
-      requests-per-minute: 300
-      burst: 50
+      # DEV: una pantalla como Apertura lanza ~80 peticiones al cargar; con 50 de ráfaga salían 429 aunque sea un solo usuario.
+      requests-per-minute: 600
+      burst: 150
       login-per-minute: 120    # DEV: holgado para que tools/e2e (muchos login seguidos) no reciba 429
       login-burst: 60
       public-per-minute: 30    # matrícula en línea del sitio público (sin sesión): más estricto que la API

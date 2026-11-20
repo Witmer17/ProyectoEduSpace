@@ -728,7 +728,10 @@ export class MatriculaEnLineaComponent implements OnInit {
       },
       error: e => {
         this.trabajando.set(false);
-        this.error.set(this.mensaje(e, 'No pudimos reservar la vacante. Intenta de nuevo.'));
+        // 429: el servidor frena los envíos seguidos desde una misma conexión; no es un fallo de la vacante.
+        this.error.set(e?.status === 429
+          ? 'Hubo muchos intentos seguidos. Espera un minuto e intenta de nuevo.'
+          : this.mensaje(e, 'No pudimos reservar la vacante. Intenta de nuevo.'));
       }
     });
   }

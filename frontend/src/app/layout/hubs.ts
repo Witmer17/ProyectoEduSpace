@@ -94,27 +94,33 @@ export const HUBS: Hub[] = [
     titulo: 'Aulas y secciones',
     descripcion: 'Elegir una sección y ver su tutor, alumnos, cursos y docentes',
     icono: 'M3 21V8l9-5 9 5v13M9 21v-6h6v6',
-    pestanas: [{ etiqueta: 'Panel de aulas', ruta: '/planificacion/panel', roles: PERSONAL, icono: 'M3 21V8l9-5 9 5v13M9 21v-6h6v6' }]
+    pestanas: [
+      { etiqueta: 'Panel de aulas', ruta: '/planificacion/panel', roles: PERSONAL, icono: 'M3 21V8l9-5 9 5v13M9 21v-6h6v6' },
+      { etiqueta: 'Secciones', ruta: '/planificacion/secciones', roles: PERSONAL, icono: 'M4 5h16v14H4zM8 9h8M8 13h5' }
+    ]
   },
   {
     id: 'cursos',
     titulo: 'Cursos y docentes',
-    descripcion: 'Quién dicta qué curso en cada sección',
+    descripcion: 'Cursos, malla curricular, quién dicta qué curso en cada sección',
     icono: 'M5 4h14v16H5zM9 9h6M9 13h6',
     pestanas: [
       { etiqueta: 'Panel de cursos', ruta: '/planificacion/cursos-docentes', roles: PERSONAL, icono: 'M5 4h14v16H5zM9 9h6M9 13h6' },
+      { etiqueta: 'Cursos', ruta: '/planificacion/cursos', roles: PERSONAL, icono: 'M4 19V5a2 2 0 012-2h12v16H6a2 2 0 00-2 2zM8 7h6' },
+      { etiqueta: 'Malla curricular', ruta: '/planificacion/malla', roles: PERSONAL, icono: 'M3 6h18M3 12h18M3 18h18M7 3v18' },
       { etiqueta: 'Asignaciones', ruta: '/planificacion/asignaciones', roles: PERSONAL, icono: 'M9 11l3 3 8-8M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h9' }
     ]
   },
   {
     id: 'horarios',
     titulo: 'Horarios',
-    descripcion: 'Armado automático, edición y aulas libres',
+    descripcion: 'Armado automático, edición, aulas libres y bloques horarios',
     icono: 'M4 5h16v15H4zM4 10h16M10 5v15',
     pestanas: [
       { etiqueta: 'Armado automático', ruta: '/planificacion/horarios-auto', roles: PERSONAL, icono: 'M13 2L4 14h7l-1 8 9-12h-7z' },
       { etiqueta: 'Horario por sección', ruta: '/planificacion/horarios', roles: PERSONAL, icono: 'M4 5h16v15H4zM4 10h16M10 5v15' },
-      { etiqueta: 'Aulas disponibles', ruta: '/planificacion/aulas-disponibles', roles: PERSONAL, icono: 'M6 3h12v18H6zM14 12h.01' }
+      { etiqueta: 'Aulas disponibles', ruta: '/planificacion/aulas-disponibles', roles: PERSONAL, icono: 'M6 3h12v18H6zM14 12h.01' },
+      { etiqueta: 'Bloques horarios', ruta: '/planificacion/bloques', roles: PERSONAL, icono: 'M12 7v5l3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0' }
     ]
   },
   {
