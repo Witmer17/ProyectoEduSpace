@@ -48,6 +48,8 @@ import {
   ResultadoGeneracion
 } from '../models/planificacion.model';
 
+import { PropuestaAulas, ResultadoAsignacionAulas } from '../models/asignacion-aulas.model';
+
 const API = '/api/v1/planificacion';
 
 @Injectable({ providedIn: 'root' })
@@ -189,6 +191,19 @@ export class PlanificacionService {
   }
   cambiarEstadoArea(id: number, activo: boolean): Observable<Area> {
     return this.http.patch<Area>(`${API}/areas/${id}/activo`, {}, { params: new HttpParams().set('activo', activo) });
+  }
+
+  // Asignación automática de aulas (solo las secciones sin aula; cada grado en su pabellón)
+  asignacionAulas(anioId: number): Observable<PropuestaAulas> {
+    return this.http.get<PropuestaAulas>(`${API}/asignacion-aulas`, { params: new HttpParams().set('anioId', anioId) });
+  }
+  aplicarAsignacionAulas(anioId: number): Observable<ResultadoAsignacionAulas> {
+    return this.http.post<ResultadoAsignacionAulas>(`${API}/asignacion-aulas`, null, { params: new HttpParams().set('anioId', anioId) });
+  }
+  /** Agrega un aula al pabellón de una falta: el servidor pone el código y sube en uno las aulas declaradas del pabellón. */
+  agregarAulaPabellon(pabellonId: number, capacidad: number): Observable<Aula> {
+    const params = new HttpParams().set('pabellonId', pabellonId).set('capacidad', capacidad);
+    return this.http.post<Aula>(`${API}/asignacion-aulas/agregar-aula`, null, { params });
   }
 
   // Pabellones

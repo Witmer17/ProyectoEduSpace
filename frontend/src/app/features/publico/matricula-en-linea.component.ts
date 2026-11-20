@@ -13,6 +13,8 @@ import { costosConDescuento, normalizarCodigo, textoAplica, textoValor } from '.
 type Paso = 'grado' | 'datos' | 'pago' | 'listo';
 
 const CLAVE = 'eduspace_matricula_en_linea';
+/** Lo que la familia escribió en el formulario (sesión de la pestaña): para no perderlo al recargar o al volver con «Atrás». */
+const CLAVE_DATOS = 'eduspace_matricula_en_linea_datos';
 const PARENTESCOS = [['MADRE', 'Madre'], ['PADRE', 'Padre'], ['TUTOR', 'Tutor(a)'], ['ABUELO', 'Abuelo'], ['ABUELA', 'Abuela'], ['TIO', 'Tío'], ['TIA', 'Tía'], ['OTRO', 'Otro']];
 
 /** Un DNI tiene 8 números; los otros documentos admiten letras y números. */
@@ -630,6 +632,27 @@ export class MatriculaEnLineaComponent implements OnInit {
   constructor() {
     this.documentoHermano.statusChanges.subscribe(() => this.documentoHermanoValido.set(this.documentoHermano.valid));
     this.form.controls.apoderado.controls.email.valueChanges.subscribe(v => this.correoEscrito.set(!!v?.trim()));
+    // Los datos que la familia escribe se guardan en la sesión de la pestaña: si recarga o vuelve después de reservar, «Atrás» no queda vacío.
+    this.form.valueChanges.subscribe(() => this.guardarBorrador());
+  }
+
+  private guardarBorrador(): void {
+    try {
+      const v = this.form.getRawValue();
+      sessionStorage.setItem(CLAVE_DATOS, JSON.stringify({ gradoId: this.gradoId(), nivelId: this.nivelId(), alumno: v.alumno, apoderado: v.apoderado, planPago: this.planElegido() }));
+    } catch { /* sin almacenamiento: los datos solo viven en la pantalla */ }
+  }
+
+  /** Vuelve a poner en el formulario lo que la familia ya escribió (antes de recargar o de volver al trámite). */
+  private restaurarBorrador(): void {
+    try {
+      const b = JSON.parse(sessionStorage.getItem(CLAVE_DATOS) ?? 'null');
+      if (!b) return;
+      if (b.gradoId) this.gradoId.set(b.gradoId);
+      if (b.nivelId) this.nivelId.set(b.nivelId);
+      if (b.planPago) this.planElegido.set(b.planPago);
+      this.form.patchValue({ alumno: b.alumno ?? {}, apoderado: b.apoderado ?? {} });
+    } catch { /* borrador dañado: se empieza con el formulario en blanco */ }
   }
 
   ngOnInit(): void {
@@ -639,6 +662,7 @@ export class MatriculaEnLineaComponent implements OnInit {
         this.oferta.set(o);
         this.nivelId.set(o.niveles[0]?.id ?? 0);
         this.cargando.set(false);
+        this.restaurarBorrador();
         this.retomar();
       },
       error: () => {
@@ -667,6 +691,7 @@ export class MatriculaEnLineaComponent implements OnInit {
     this.errorPago.set(null);
     this.modalPago.set(false);
     this.form.reset({ alumno: { tipoDocumento: 'DNI', sexo: 'F' }, apoderado: { tipoDocumento: 'DNI', parentesco: 'MADRE' }, sitio: '' });
+    try { sessionStorage.removeItem(CLAVE_DATOS); } catch { /* nada que borrar */ }   // después del reset: el reset también guarda borrador
     this.quitarCodigo();
     this.planElegido.set('MENSUAL');
     this.alternarHermano(false);

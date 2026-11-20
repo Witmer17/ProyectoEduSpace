@@ -1,0 +1,5 @@
+# Frontend y llamadas por el Gateway  [s11.front]
+# Fecha y hora: 2026-11-19 20:21:35   Usuario: hrems-dev@fedora   Proyecto: eduspacePRACTICA
+# Resultado: CON OBSERVACIONES
+
+✘ frontend  GET :4200/  →  HTTP ECONNREFUSED

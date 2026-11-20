@@ -1,0 +1,15 @@
+# Circuit Breakers y resiliencia  [s6.resilience]
+# Fecha y hora: 2026-11-19 20:21:31   Usuario: hrems-dev@fedora   Proyecto: eduspacePRACTICA
+# Resultado: CON OBSERVACIONES
+
+   alumnos-ms                   sin circuit breakers expuestos
+   asistencia-ms                sin circuit breakers expuestos
+   auth-ms                      sin circuit breakers expuestos
+   calificaciones-ms            sin circuit breakers expuestos
+   examenes-ms                  sin circuit breakers expuestos
+   matricula-ms                 sin circuit breakers expuestos
+   notificaciones-ms            sin circuit breakers expuestos
+   pago-ms                      sin circuit breakers expuestos
+   planificacion-ms             sin circuit breakers expuestos
+   tareas-ms                    sin circuit breakers expuestos
+Ningún servicio expone /actuator/circuitbreakers (exponer el endpoint y usar Resilience4j).

@@ -94,33 +94,27 @@ export const HUBS: Hub[] = [
     titulo: 'Aulas y secciones',
     descripcion: 'Elegir una sección y ver su tutor, alumnos, cursos y docentes',
     icono: 'M3 21V8l9-5 9 5v13M9 21v-6h6v6',
-    pestanas: [
-      { etiqueta: 'Panel de aulas', ruta: '/planificacion/panel', roles: PERSONAL, icono: 'M3 21V8l9-5 9 5v13M9 21v-6h6v6' },
-      { etiqueta: 'Secciones', ruta: '/planificacion/secciones', roles: PERSONAL, icono: 'M4 5h16v14H4zM8 9h8M8 13h5' }
-    ]
+    pestanas: [{ etiqueta: 'Panel de aulas', ruta: '/planificacion/panel', roles: PERSONAL, icono: 'M3 21V8l9-5 9 5v13M9 21v-6h6v6' }]
   },
   {
     id: 'cursos',
     titulo: 'Cursos y docentes',
-    descripcion: 'Cursos, malla curricular, quién dicta qué curso en cada sección',
+    descripcion: 'Quién dicta qué curso en cada sección',
     icono: 'M5 4h14v16H5zM9 9h6M9 13h6',
     pestanas: [
       { etiqueta: 'Panel de cursos', ruta: '/planificacion/cursos-docentes', roles: PERSONAL, icono: 'M5 4h14v16H5zM9 9h6M9 13h6' },
-      { etiqueta: 'Cursos', ruta: '/planificacion/cursos', roles: PERSONAL, icono: 'M4 19V5a2 2 0 012-2h12v16H6a2 2 0 00-2 2zM8 7h6' },
-      { etiqueta: 'Malla curricular', ruta: '/planificacion/malla', roles: PERSONAL, icono: 'M3 6h18M3 12h18M3 18h18M7 3v18' },
       { etiqueta: 'Asignaciones', ruta: '/planificacion/asignaciones', roles: PERSONAL, icono: 'M9 11l3 3 8-8M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h9' }
     ]
   },
   {
     id: 'horarios',
     titulo: 'Horarios',
-    descripcion: 'Armado automático, edición, aulas libres y bloques horarios',
+    descripcion: 'Armado automático, edición y aulas libres',
     icono: 'M4 5h16v15H4zM4 10h16M10 5v15',
     pestanas: [
       { etiqueta: 'Armado automático', ruta: '/planificacion/horarios-auto', roles: PERSONAL, icono: 'M13 2L4 14h7l-1 8 9-12h-7z' },
       { etiqueta: 'Horario por sección', ruta: '/planificacion/horarios', roles: PERSONAL, icono: 'M4 5h16v15H4zM4 10h16M10 5v15' },
-      { etiqueta: 'Aulas disponibles', ruta: '/planificacion/aulas-disponibles', roles: PERSONAL, icono: 'M6 3h12v18H6zM14 12h.01' },
-      { etiqueta: 'Bloques horarios', ruta: '/planificacion/bloques', roles: PERSONAL, icono: 'M12 7v5l3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0' }
+      { etiqueta: 'Aulas disponibles', ruta: '/planificacion/aulas-disponibles', roles: PERSONAL, icono: 'M6 3h12v18H6zM14 12h.01' }
     ]
   },
   {
@@ -166,21 +160,33 @@ export const HUBS: Hub[] = [
   {
     id: 'configuracion',
     titulo: 'Configuración',
-    descripcion: 'Información del colegio y edición de sus datos: datos, grados, estructura, años y periodos, feriados, áreas, campañas y tarifas',
+    descripcion: 'Lo permanente del colegio: datos, grados, cursos, estructura y áreas de trabajo (lo de cada año está en Apertura de periodo)',
     icono: 'M4 7h9M17 7h3M4 17h3M11 17h9M15 4v6M9 14v6',
     pestanas: [
       { etiqueta: 'Resumen', ruta: '/configuracion', roles: PERSONAL, icono: 'M9 11l3 3 8-8M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h9' },
       { grupo: 'El colegio', etiqueta: 'Datos del colegio', ruta: '/configuracion/colegio', roles: PERSONAL, icono: 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 10h.01M15 10h.01' },
       { grupo: 'El colegio', etiqueta: 'Niveles y grados', ruta: '/configuracion/grados', roles: PERSONAL, icono: 'M3 21h18M6 21V10l6-5 6 5v11M10 21v-6h4v6' },
+      { grupo: 'El colegio', etiqueta: 'Cursos', ruta: '/configuracion/cursos', roles: PERSONAL, icono: 'M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5zM4 19.5V21h16' },
       // Aulas físicas, secciones, cursos, malla y bloques horarios se reúnen aquí, por grado.
       { grupo: 'El colegio', etiqueta: 'Estructura académica', ruta: '/configuracion/estructura', roles: PERSONAL, icono: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z', conHijos: true },
-      { grupo: 'Año escolar', etiqueta: 'Años y periodos', ruta: '/planificacion/anios', roles: PERSONAL, icono: 'M4 5h16v15H4zM4 10h16M9 3v4M15 3v4' },
-      { grupo: 'Año escolar', etiqueta: 'Feriados', ruta: '/planificacion/feriados', roles: PERSONAL, icono: 'M12 3l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9.4l6-.9z' },
       { grupo: 'Personal', etiqueta: 'Áreas de trabajo', ruta: '/configuracion/areas', roles: PERSONAL, icono: 'M3 21V8l9-5 9 5v13M3 21h18M9 21v-5h6v5M9 11h.01M15 11h.01' },
-      { grupo: 'Matrícula', etiqueta: 'Campañas de matrícula', ruta: '/matriculas/campanias', roles: PERSONAL, icono: 'M5 21V4M5 4h12l-2 4 2 4H5' },
-      { grupo: 'Cobranza', etiqueta: 'Conceptos de pago', ruta: '/pagos/conceptos', roles: ADMIN, icono: 'M3 3h8l10 10-8 8L3 11zM7.5 7.5h.01' },
-      { grupo: 'Cobranza', etiqueta: 'Tarifas', ruta: '/pagos/tarifas', roles: ADMIN, icono: 'M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6' },
-      { grupo: 'Cobranza', etiqueta: 'Descuentos', ruta: '/pagos/descuentos', roles: ADMIN, icono: 'M19 5L5 19M7 7h.01M17 17h.01' }
+      // La semana de cada docente en una grilla: lo que se arma aquí es el horario de los grados.
+      { grupo: 'Personal', etiqueta: 'Horario del docente', ruta: '/configuracion/horarios', roles: PERSONAL, icono: 'M4 5h16v15H4zM4 10h16M10 5v15' }
+    ]
+  },
+  {
+    id: 'apertura',
+    titulo: 'Apertura de periodo',
+    descripcion: 'Todo lo necesario para abrir un año escolar, paso a paso: año y periodos, feriados, cobros y campaña de matrícula',
+    icono: 'M5 21V4M5 4h12l-2 4 2 4H5',
+    pestanas: [
+      { etiqueta: 'Pasos de la apertura', ruta: '/apertura', roles: PERSONAL, icono: 'M9 11l3 3 8-8M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h9' },
+      { grupo: 'Calendario', etiqueta: 'Años y periodos', ruta: '/planificacion/anios', roles: PERSONAL, icono: 'M4 5h16v15H4zM4 10h16M9 3v4M15 3v4' },
+      { grupo: 'Calendario', etiqueta: 'Feriados', ruta: '/planificacion/feriados', roles: PERSONAL, icono: 'M12 3l2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8-5.3 2.8 1-6L3.3 9.4l6-.9z' },
+      { grupo: 'Cobros del año', etiqueta: 'Conceptos de pago', ruta: '/pagos/conceptos', roles: ADMIN, icono: 'M3 3h8l10 10-8 8L3 11zM7.5 7.5h.01' },
+      { grupo: 'Cobros del año', etiqueta: 'Tarifas', ruta: '/pagos/tarifas', roles: ADMIN, icono: 'M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6' },
+      { grupo: 'Cobros del año', etiqueta: 'Descuentos', ruta: '/pagos/descuentos', roles: ADMIN, icono: 'M19 5L5 19M7 7h.01M17 17h.01' },
+      { grupo: 'Matrícula', etiqueta: 'Campañas de matrícula', ruta: '/matriculas/campanias', roles: PERSONAL, icono: 'M5 21V4M5 4h12l-2 4 2 4H5' }
     ]
   }
 ];

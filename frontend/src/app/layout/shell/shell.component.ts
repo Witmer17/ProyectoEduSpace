@@ -110,7 +110,7 @@ export class ShellComponent {
   protected readonly barraSuperior = computed(() => this.esAula() || this.esPersonal());
 
   /**
-   * Opciones de la barra del personal: solo tres opciones (Inicio, Personal y Configuración).
+   * Opciones de la barra del personal: Inicio, Alumnos, Matrícula, Personal, Configuración y Apertura (como en la copia completa).
    * Las demás pantallas siguen existiendo (Ctrl+K y sus rutas); al abrirlas llevan su menú vertical.
    */
   protected readonly navPersonal = computed(() => {
@@ -121,8 +121,11 @@ export class ShellComponent {
     }
     return [
       todos.find(i => i.ruta === '/inicio' || i.ruta === '/secretaria'),
+      todos.find(i => i.hub === 'alumnos'),
+      todos.find(i => i.hub === 'matricula'),
       todos.find(i => i.hub === 'personal'),
-      todos.find(i => i.hub === 'configuracion')
+      todos.find(i => i.hub === 'configuracion'),
+      todos.find(i => i.hub === 'apertura')
     ].filter((i): i is NonNullable<typeof i> => !!i);
   });
 

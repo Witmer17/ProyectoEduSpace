@@ -11,6 +11,8 @@ export interface Conflicto {
   texto: string;
   /** Identifica un mismo problema visto desde dos grados (p. ej. un aula compartida) para contarlo una sola vez. */
   clave: string;
+  /** Pantalla donde se corrige el aviso (enlace directo). */
+  ruta?: string;
 }
 
 export interface EntradaEstructura {
@@ -40,6 +42,10 @@ export function detectarConflictos(e: EntradaEstructura): Conflicto[] {
   const activas = e.secciones.filter(s => s.activo !== false);
   const r: Conflicto[] = [];
 
+  // Problemas de configuración que afectan a varios grados: se muestran una sola vez, no uno por grado.
+  const sinMalla: Grado[] = [];
+  const sinBloques = new Map<Turno, Grado[]>();
+
   for (const g of e.grados) {
     const secciones = activas.filter(s => s.gradoId === g.id);
 
@@ -68,9 +74,7 @@ export function detectarConflictos(e: EntradaEstructura): Conflicto[] {
     }
 
     const malla = e.mallas[g.id];
-    if (secciones.length && malla && malla.cursos.length === 0) {
-      r.push({ gravedad: 'warn', gradoId: g.id, texto: `${g.nombre} tiene secciones pero ningún curso en su malla: no se podrá armar su horario.`, clave: `sin-malla:${g.id}` });
-    }
+    if (secciones.length && malla && malla.cursos.length === 0) sinMalla.push(g);
     for (const c of malla?.cursos ?? []) {
       if (cursos.get(c.cursoId)?.activo === false) {
         r.push({ gravedad: 'warn', gradoId: g.id, texto: `El curso ${c.cursoNombre} está inactivo pero sigue en la malla de ${g.nombre}.`, clave: `curso-inactivo:${g.id}:${c.cursoId}` });
@@ -80,7 +84,7 @@ export function detectarConflictos(e: EntradaEstructura): Conflicto[] {
     for (const turno of new Set(secciones.map(s => s.turno))) {
       const disponibles = bloquesDeClase(e.bloques, turno);
       if (disponibles === 0) {
-        r.push({ gravedad: 'danger', gradoId: g.id, texto: `No hay bloques horarios de clase en el turno ${turnoTexto(turno)}, que usa ${g.nombre}.`, clave: `sin-bloques:${g.id}:${turno}` });
+        sinBloques.set(turno, [...(sinBloques.get(turno) ?? []), g]);
       } else if (malla && malla.totalHoras > disponibles * DIAS_SEMANA) {
         r.push({
           gravedad: 'danger', gradoId: g.id,
@@ -89,6 +93,22 @@ export function detectarConflictos(e: EntradaEstructura): Conflicto[] {
         });
       }
     }
+  }
+  if (sinMalla.length) {
+    const nombres = sinMalla.map(g => g.nombre).join(', ');
+    r.push({
+      gravedad: 'warn', gradoId: sinMalla[0].id, ruta: '/planificacion/malla',
+      texto: `${sinMalla.length} ${sinMalla.length === 1 ? 'grado no tiene' : 'grados no tienen'} cursos en la malla (${nombres}): sin malla no se arma su horario.`,
+      clave: `sin-malla:${sinMalla.map(g => g.id).join('-')}`
+    });
+  }
+  for (const [turno, grados] of sinBloques) {
+    const nombres = grados.map(g => g.nombre).join(', ');
+    r.push({
+      gravedad: 'danger', gradoId: grados[0].id, ruta: '/planificacion/bloques',
+      texto: `No hay bloques horarios de clase en el turno ${turnoTexto(turno)} (lo usan ${nombres}).`,
+      clave: `sin-bloques:${turno}`
+    });
   }
   return r;
 }

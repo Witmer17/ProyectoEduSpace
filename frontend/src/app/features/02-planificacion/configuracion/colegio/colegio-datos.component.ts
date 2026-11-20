@@ -8,11 +8,12 @@ import { PlanificacionService } from '../../../../core/services/planificacion.se
 import { mensajeError } from '../../../../core/utils/errores';
 import { ConfigHeroComponent } from '../../../../shared/components/config-hero/config-hero.component';
 import { PabellonesComponent } from './pabellones.component';
+import { AsignacionAulasComponent } from './asignacion-aulas.component';
 
 /** Lo que identifica al colegio: nombre, códigos oficiales, dirección y contacto. Los modifica solo el administrador. */
 @Component({
   selector: 'app-colegio-datos',
-  imports: [ReactiveFormsModule, DatePipe, ConfigHeroComponent, PabellonesComponent],
+  imports: [ReactiveFormsModule, DatePipe, ConfigHeroComponent, PabellonesComponent, AsignacionAulasComponent],
   template: `
     <div class="page n-primaria">
       <app-config-hero titulo="Datos del colegio" subtitulo="Nombre, códigos oficiales, dirección y contacto de la institución." icono="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 10h.01M15 10h.01" />
@@ -125,6 +126,7 @@ import { PabellonesComponent } from './pabellones.component';
 
       <!-- Pabellones y aulas: el nombre lo decide el usuario y declara cuántas aulas tiene cada uno -->
       <app-pabellones />
+      <app-asignacion-aulas />
     </div>
   `,
   styles: `

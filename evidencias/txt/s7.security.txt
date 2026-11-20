@@ -1,0 +1,17 @@
+# Seguridad: rutas protegidas y JWKS  [s7.security]
+# Fecha y hora: 2026-11-19 20:21:31   Usuario: hrems-dev@fedora   Proyecto: eduspacePRACTICA
+# Resultado: CORRECTO
+
+Peticiones SIN token por el Gateway (las rutas protegidas deben dar 401/403):
+   🔒 GET /api/v1/auth  →  HTTP 401
+   🔒 GET /api/v1/planificacion  →  HTTP 401
+   🔒 GET /api/v1/alumnos  →  HTTP 401
+   🔒 GET /api/v1/notificaciones  →  HTTP 401
+   🔒 GET /api/v1/calificaciones  →  HTTP 401
+   🔒 GET /api/v1/pagos  →  HTTP 401
+   🔒 GET /api/v1/examenes  →  HTTP 401
+   🔓 GET /api/v1/publico  →  HTTP 404
+   🔒 GET /api/v1/asistencia  →  HTTP 401
+   🔒 GET /api/v1/tareas  →  HTTP 401
+
+✔ auth-ms  GET /.well-known/jwks.json  →  HTTP 200 · 1 claves públicas

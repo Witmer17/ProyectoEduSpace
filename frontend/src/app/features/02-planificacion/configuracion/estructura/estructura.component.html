@@ -29,7 +29,9 @@
             @for (c of conflictosUnicos(); track c.clave) {
               <li [class]="'conflicto ' + c.gravedad">
                 <span class="conflicto-punto" aria-hidden="true"></span>
-                <span>{{ c.texto }}</span>
+                <span>{{ c.texto }}
+                  @if (c.ruta) { <a [routerLink]="c.ruta" class="enlace-corregir">Corregir →</a> }
+                </span>
               </li>
             }
           </ul>
