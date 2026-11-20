@@ -349,8 +349,8 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN}
       MERCADOPAGO_PUBLIC_KEY: ${MERCADOPAGO_PUBLIC_KEY}
-      MERCADOPAGO_BACK_URL: ${MERCADOPAGO_BACK_URL:-http://20.197.193.121/familia/pagos}
-      MERCADOPAGO_NOTIFICATION_URL: ${MERCADOPAGO_NOTIFICATION_URL:-http://20.197.193.121/api/v1/pagos/webhook/mercadopago}
+      MERCADOPAGO_BACK_URL: ${MERCADOPAGO_BACK_URL:-https://eduspace-peru.duckdns.org/familia/pagos}
+      MERCADOPAGO_NOTIFICATION_URL: ${MERCADOPAGO_NOTIFICATION_URL:-https://eduspace-peru.duckdns.org/api/v1/pagos/webhook/mercadopago}
       MERCADOPAGO_CURRENCY: PEN
       MERCADOPAGO_PRODUCCION: "true"
       JAVA_TOOL_OPTIONS: "-Xms160m -Xmx224m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"

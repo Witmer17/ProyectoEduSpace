@@ -92,9 +92,9 @@ public class MercadoPagoService {
         String baseBack = mpProps.getBackUrl();
         if (baseBack != null && !baseBack.isBlank()) {
             Map<String, String> backUrls = new HashMap<>();
-            backUrls.put("success", baseBack + "?status=approved&ext=" + externalRef);
-            backUrls.put("pending", baseBack + "?status=pending&ext=" + externalRef);
-            backUrls.put("failure", baseBack + "?status=failure&ext=" + externalRef);
+            backUrls.put("success", baseBack);
+            backUrls.put("pending", baseBack);
+            backUrls.put("failure", baseBack);
             preferenceBody.put("back_urls", backUrls);
             if (baseBack.startsWith("https://")) {
                 preferenceBody.put("auto_return", "approved");
@@ -129,11 +129,15 @@ public class MercadoPagoService {
         String initPoint = (String) mpResponse.get("init_point");
         String sandboxInitPoint = (String) mpResponse.get("sandbox_init_point");
 
-        log.info("Preferencia de Mercado Pago creada: id={}, total={}, externalRef={}", prefId, total, externalRef);
+        // Si produccion=false, usamos sandbox_init_point para pruebas seguras
+        String urlEfectiva = mpProps.isProduccion() ? initPoint : (sandboxInitPoint != null ? sandboxInitPoint : initPoint);
+
+        log.info("Preferencia de Mercado Pago creada: id={}, total={}, externalRef={}, produccion={}",
+            prefId, total, externalRef, mpProps.isProduccion());
 
         return PreferenciaMpResponse.builder()
             .preferenceId(prefId)
-            .initPoint(initPoint)
+            .initPoint(urlEfectiva)
             .sandboxInitPoint(sandboxInitPoint)
             .externalReference(externalRef)
             .montoTotal(total)

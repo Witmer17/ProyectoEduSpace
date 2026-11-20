@@ -1,5 +1,6 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { EstadoCuenta, EstadoCuota, Pago } from '../../../core/models/cobro.model';
 import { CobroService } from '../../../core/services/cobro.service';
 import { FamiliaContextoService } from '../../../core/services/familia-contexto.service';
@@ -22,6 +23,8 @@ export class FamiliaPagosComponent implements OnInit {
   protected readonly ctx = inject(FamiliaContextoService);
   private readonly api = inject(CobroService);
   private readonly avisos = inject(NotificationService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly cuenta = signal<EstadoCuenta | null>(null);
   protected readonly cargando = signal(true);
@@ -45,7 +48,29 @@ export class FamiliaPagosComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.verificarRetornoMercadoPago();
     this.ctx.cargar().subscribe({ error: e => this.avisos.error(mensajeError(e)) });
+  }
+
+  private verificarRetornoMercadoPago(): void {
+    const qp = this.route.snapshot.queryParams;
+    const status = qp['status'] || qp['collection_status'];
+
+    if (status) {
+      if (status === 'approved') {
+        this.avisos.success('¡Pago aprobado por Mercado Pago! Tus cuotas han sido actualizadas.');
+        setTimeout(() => this.cargar(this.ctx.seleccionado()?.alumnoId), 1500);
+      } else if (status === 'pending' || status === 'in_process') {
+        this.avisos.info('Tu pago está pendiente de confirmación en Mercado Pago.');
+      } else if (status === 'failure' || status === 'rejected') {
+        this.avisos.error('El pago no pudo completarse en Mercado Pago.');
+      }
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {},
+        replaceUrl: true
+      });
+    }
   }
 
   protected clase(e: EstadoCuota): string {
